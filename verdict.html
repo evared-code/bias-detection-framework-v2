@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISO 24027 Verdict</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .kv { font-size: 12px; color: var(--text2); line-height: 1.8; }
+  .kv strong { color: var(--text); }
+  .st { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+  .st-sig { background: var(--red-light); color: var(--red); }
+  .st-ns { background: var(--green-light); color: var(--green); }
+  .st-ind { background: var(--surface2); color: var(--text2); border: 1px dashed var(--border2); }
+  .st-low { background: var(--amber-light); color: var(--amber); }
+  .st-info { background: var(--blue-light); color: var(--blue); }
+  .tol-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .tol-table th, .tol-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+  .tol-table th { font-size: 11px; color: var(--text2); font-weight: 600; }
+  .tol-table input[type=number] { width: 80px; }
+  .tol-table input[type=text] { width: 100%; }
+  .vcard { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 10px; }
+  .vcard-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .vcard-title { font-size: 13px; font-weight: 600; }
+  .vnums { font-size: 12px; color: var(--text2); margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .outcome { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .o-justified, .o-none { background: var(--green-light); color: var(--green); }
+  .o-unwanted, .o-hidden { background: var(--red-light); color: var(--red); }
+  .o-indeterminate { background: var(--surface2); color: var(--text2); border: 1px dashed var(--border2); }
+  .o-pending { background: var(--amber-light); color: var(--amber); }
+  .checks label { display: flex; gap: 6px; align-items: flex-start; font-size: 12px; margin-top: 4px; }
+  .grid2 { display: grid; grid-template-columns: 110px 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .gh { font-size: 12px; font-weight: 700; text-align: center; align-self: end; }
+  .gr { font-size: 12px; font-weight: 700; align-self: center; }
+  .gr span { display: block; font-weight: 400; color: var(--text3); font-size: 11px; }
+  .gcell { border-radius: var(--radius-sm); padding: 10px 12px; min-height: 90px; font-size: 12px; }
+  .gcell h4 { font-size: 12px; margin-bottom: 4px; }
+  .gcell ul { margin: 0; padding-left: 16px; }
+  .g-fair { background: var(--green-light); color: var(--green); }
+  .g-unfair { background: var(--red-light); color: var(--red); }
+  .g-ind { border: 1.5px dashed var(--border2); color: var(--text2); grid-column: 2 / span 2; min-height: 0; }
+  @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } .gh, .gr { text-align: left; } .g-ind { grid-column: auto; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-badges">
+        <span class="badge badge-iso">ISO/IEC 24027:2021</span>
+        <span class="badge badge-proxy">Verdict</span>
+      </div>
+      <h1>G · Verdict — is the measured bias unwanted in context?</h1>
+      <p>For the domain expert. Set tolerances first; results stay hidden until the tolerances are locked.</p>
+    </div>
+    <div class="header-actions">
+      <a class="btn btn-sm" href="magnitude.html" style="text-decoration:none">← Magnitude</a>
+      <button class="btn btn-sm btn-primary" onclick="window.print()">Print / Save as PDF</button>
+    </div>
+  </div>
+  <div class="nav">
+    <a href="index.html">← Overview</a>
+    <a href="checklist.html">1 · Checklist</a>
+    <a href="metric-plan.html">2 · Metric plan</a>
+    <a href="magnitude.html">3 · Magnitude</a>
+    <a href="verdict.html" class="current">4 · Verdict</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="panel">
+    <h2>Inputs</h2>
+    <div id="inputs" class="kv"></div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <label class="btn btn-sm" style="cursor:pointer">Import plan JSON
+        <input type="file" accept=".json,application/json" style="display:none" onchange="readJSONFile(this, d => importAs(d,'iso24027-metric-plan',PLAN_KEY))"></label>
+      <label class="btn btn-sm" style="cursor:pointer">Import magnitude JSON
+        <input type="file" accept=".json,application/json" style="display:none" onchange="readJSONFile(this, d => importAs(d,'iso24027-magnitude',MAG_KEY))"></label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="stage">Context</span>What the judgement is based on</h2>
+    <div id="context" class="kv"></div>
+    <div class="form-grid">
+      <div class="form-field"><label>Verdict owner</label><input type="text" id="owner" placeholder="Name" oninput="setV('owner', this.value)"></div>
+      <div class="form-field"><label>Role</label><input type="text" id="role" placeholder="e.g. physiotherapist, clinical lead" oninput="setV('role', this.value)"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="stage">Before results</span>Set tolerance</h2>
+    <div class="lead">For each metric and subgroup: the largest gap (absolute value, same unit as the rate) you would still accept in this context, and where that number comes from (law, guideline, clinical judgement). Lock to reveal the results.</div>
+    <fieldset id="tol-fs"><div id="tolerances"></div></fieldset>
+    <div class="lockbar unlocked" id="tol-bar" style="margin-top:12px;margin-bottom:0">
+      <span id="tol-text"></span><span style="flex:1"></span>
+      <button class="btn btn-sm" id="tol-btn" onclick="toggleTolLock()">Lock tolerances</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="stage">G</span>Judge each comparison</h2>
+    <div class="lead">Significant disparity comes from the Magnitude page (95% CI excludes 0). Your answers place each comparison in the outcome grid.</div>
+    <div id="judge"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Outcome</h2>
+    <div class="lead">Row = magnitude (bias). Column = verdict (fairness).</div>
+    <div id="outcome"></div>
+    <div id="other-findings" style="margin-top:16px"></div>
+    <div class="howto" style="margin-top:16px;margin-bottom:0" id="validity"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="exportJSON()">Download verdict (JSON)</button>
+      <button class="btn" onclick="exportCSV()">Download verdict (CSV)</button>
+      <a class="btn" href="metric-plan.html" style="text-decoration:none">Start re-assessment (Metric plan) →</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). ISO 24027 Bias Detection Framework · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
+
+<script src="bias-data.js"></script>
+<script>
+let plan = lsGet(PLAN_KEY), mag = lsGet(MAG_KEY), checklist = lsGet(CHECKLIST_KEY) || { status:{}, notes:{}, unkReason:{} };
+let V = Object.assign({ owner:'', role:'', tol:{}, tolLocked:false, tolLockedAt:null, dec:{}, log:[] }, lsGet(VERDICT_KEY) || {});
+const save = () => lsSet(VERDICT_KEY, V);
+const setV = (k, v) => { V[k] = v; save(); if (typeof renderOutcome === 'function') renderOutcome(); };
+const tkey = (sub, m) => sub + '|' + m;
+const ckey = (sub, m, g) => sub + '|' + m + '|' + g;
+const f3 = v => v === null || v === undefined ? '—' : (Math.round(v * 1000) / 1000).toFixed(3);
+const sg = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + f3(v);
+
+function importAs(d, src, key) {
+  if (d.source !== src) { alert('This file is not a ' + src + ' export.'); return; }
+  lsSet(key, d); if (key === PLAN_KEY) plan = d; else mag = d; renderAll();
+}
+
+// ─── INPUTS + CONTEXT ───────────────────────────────────────────────
+function renderInputs() {
+  const el = document.getElementById('inputs'), w = [];
+  if (!plan) w.push('No metric plan in this browser.');
+  if (!mag) w.push('No magnitude results in this browser.');
+  let h = '';
+  if (plan) h += `<strong>Plan:</strong> ${esc(plan.system || '—')} · ${plan.locked ? `<span class="st st-ns">LOCKED</span> ${esc(new Date(plan.lockedAt).toLocaleString())}` : `<span class="st st-low">NOT LOCKED</span>`} · ${plan.compute.length} computation(s)<br>`;
+  if (mag) {
+    h += `<strong>Magnitude:</strong> computed ${esc(new Date(mag.generated).toLocaleString())} from ${esc(mag.data ? mag.data.file : '—')} (${mag.data ? mag.data.rows : 0} rows)<br>`;
+    if (plan && mag.plan && mag.plan.lockedAt !== plan.lockedAt) h += `<span class="st st-sig">MISMATCH</span> The results were computed from a different version of the plan. Re-run the Magnitude page.<br>`;
+    if (mag.plan && !mag.plan.locked) h += `<span class="st st-low">NOTE</span> The results were computed from an unlocked plan.<br>`;
+  }
+  if (w.length) h += `<span class="st st-low">MISSING</span> ${w.join(' ')} Use the import buttons, or complete the earlier pages in this browser.`;
+  el.innerHTML = h;
+  const c = (plan && plan.context) || {};
+  document.getElementById('context').innerHTML = `
+    <strong>Domain:</strong> ${esc(c.domain || '—')}<br>
+    <strong>Law / policy:</strong> ${esc(c.law || '—')}<br>
+    <strong>Stakes:</strong> ${esc(c.stakes || '—')}<br>
+    <strong>Model version:</strong> ${esc(c.modelVersion || '—')} · <strong>Decision rule:</strong> ${esc(plan ? plan.decisionRule : '—')} · <strong>Reference:</strong> ${esc(plan ? plan.referenceDescription : '—')}`;
+  document.getElementById('owner').value = V.owner;
+  document.getElementById('role').value = V.role;
+}
+
+// ─── TOLERANCES ─────────────────────────────────────────────────────
+function renderTol() {
+  const el = document.getElementById('tolerances');
+  if (!plan || !plan.compute.length) { el.innerHTML = `<div class="empty">No computations in the plan.</div>`; }
+  else el.innerHTML = `<table class="tol-table"><thead><tr><th>Metric</th><th>Subgroup</th><th>Measures</th><th>Max |gap|</th><th>Source / justification</th></tr></thead><tbody>` +
+    plan.compute.map(c => {
+      const t = V.tol[tkey(c.subgroup, c.metric)] || {};
+      return `<tr><td>${esc(c.clause)} ${esc(c.name)}<br><span style="color:var(--text3);font-size:11px">from ${c.from.join(', ')}</span></td>
+        <td>${esc(c.subgroup || '—')}</td><td style="font-size:11px;color:var(--text2)">${esc(METRICS[c.metric].measures)}</td>
+        <td><input class="mini-input" type="number" step="0.01" min="0" style="min-width:0" value="${t.value ?? ''}" onchange="setTol('${esc(c.subgroup)}','${c.metric}','value',this.value)"></td>
+        <td><input class="mini-input" type="text" style="min-width:0" value="${esc(t.source || '')}" placeholder="e.g. clinical panel: missing >10% more high-risk users is unacceptable" onchange="setTol('${esc(c.subgroup)}','${c.metric}','source',this.value)"></td></tr>`;
+    }).join('') + `</tbody></table>
+    <div class="hint">Different metrics may deserve different tolerances: missing high-risk users (TPR) can be more harmful than over-flagging (FPR).</div>`;
+  document.getElementById('tol-fs').disabled = V.tolLocked;
+  const bar = document.getElementById('tol-bar');
+  bar.className = 'lockbar ' + (V.tolLocked ? 'locked' : 'unlocked');
+  document.getElementById('tol-btn').textContent = V.tolLocked ? 'Unlock tolerances' : 'Lock tolerances';
+  document.getElementById('tol-text').textContent = V.tolLocked
+    ? `Tolerances locked on ${new Date(V.tolLockedAt).toLocaleString()}. Results are visible below.`
+    : 'Results are hidden until the tolerances are locked.';
+}
+function setTol(sub, m, k, v) {
+  const key = tkey(sub, m); V.tol[key] = V.tol[key] || {};
+  V.tol[key][k] = k === 'value' ? (v === '' ? null : Number(v)) : v; save();
+}
+function toggleTolLock() {
+  if (!V.tolLocked) {
+    const missing = (plan ? plan.compute : []).filter(c => { const t = V.tol[tkey(c.subgroup, c.metric)]; return !t || t.value === null || t.value === undefined || isNaN(t.value); });
+    if (missing.length && !confirm(`${missing.length} computation(s) have no tolerance. Lock anyway? Those comparisons will need a reason without a tolerance.`)) return;
+    V.tolLocked = true; V.tolLockedAt = new Date().toISOString(); V.log.push({ action:'tolerances locked', at:V.tolLockedAt });
+  } else {
+    const reason = prompt('Why are you unlocking the tolerances? Results have been visible, so this is recorded.');
+    if (reason === null) return;
+    V.tolLocked = false; V.log.push({ action:'tolerances unlocked', at:new Date().toISOString(), reason });
+  }
+  save(); renderAll();
+}
+
+// ─── JUDGE ──────────────────────────────────────────────────────────
+function comparisons() {
+  if (!mag) return [];
+  const out = [];
+  mag.results.forEach(r => {
+    const t = V.tol[tkey(r.subgroup, r.metric)] || {};
+    if (!r.comparisons.length) out.push({ r, c:null, key:ckey(r.subgroup, r.metric, '*'), tol:t });
+    else r.comparisons.forEach(c => out.push({ r, c, key:ckey(r.subgroup, r.metric, c.group), tol:t }));
+  });
+  return out;
+}
+function outcomeOf(x) {
+  const d = V.dec[x.key] || {};
+  if (!x.c || x.c.status === 'indeterminate') return 'indeterminate';
+  if (x.c.status === 'significant') return d.unwanted === 'yes' ? 'unwanted' : d.unwanted === 'no' ? 'justified' : 'pending';
+  return d.hidden === 'yes' ? 'hidden' : d.hidden === 'no' ? 'none' : 'pending';
+}
+const OUT_LABEL = { unwanted:'Unwanted bias', justified:'Justified disparity', hidden:'Hidden unfairness', none:'No concern found', indeterminate:'Indeterminate', pending:'Not decided' };
+const OUT_CLASS = { unwanted:'o-unwanted', justified:'o-justified', hidden:'o-hidden', none:'o-none', indeterminate:'o-indeterminate', pending:'o-pending' };
+
+function cardHtml(x) {
+  const { r, c } = x, d = V.dec[x.key] || {};
+  const title = c ? `${r.clause} ${r.name} · ${r.subgroup}: ${c.group} vs ${r.referenceGroup}` : `${r.clause} ${r.name} · ${r.subgroup || '—'}`;
+  const out = outcomeOf(x);
+  let h = `<div class="vcard" id="v-${btoa(unescape(encodeURIComponent(x.key))).replace(/=/g,'')}"><div class="vcard-head">
+    <div class="vcard-title">${esc(title)}</div><span class="outcome ${OUT_CLASS[out]}">${OUT_LABEL[out]}</span></div>
+    <div class="res-sub" style="font-size:11px;color:var(--text3)">From ${r.from.join(', ')}</div>`;
+  if (!c || c.status === 'indeterminate') {
+    return h + `<div class="vnums"><span class="st st-ind">INDETERMINATE</span> ${esc((c && c.reason) || r.reason || '')}</div>
+      <div class="hint">No magnitude, so no verdict. This becomes an input for Specify (not yet in scope): what would the interface or data need to expose?</div></div>`;
+  }
+  const tol = x.tol.value;
+  const hasTol = tol !== null && tol !== undefined && !isNaN(tol);
+  const exceeds = hasTol ? Math.abs(c.gap) > tol : null;
+  h += `<div class="vnums">Gap <strong>${sg(c.gap)}</strong> (${esc({rate:'flag rate',tpr:'TPR',fpr:'FPR',err:'error rate'}[c.rate] || c.rate)} ${f3(c.value)} vs ${f3(c.refValue)}) · 95% CI [${sg(c.ci[0])}, ${sg(c.ci[1])}] · n ${c.n} vs ${c.refN}
+    ${c.lowN ? ` <span class="st st-low">n below ${plan ? plan.data.minN : 'minimum'}</span>` : ''}<br>
+    Significant disparity? ${c.status === 'significant' ? '<span class="st st-sig">YES</span>' : '<span class="st st-ns">NO</span>'}
+    · Tolerance ${hasTol ? `±${f3(tol)} → ${exceeds ? '<span class="st st-sig">EXCEEDED</span>' : '<span class="st st-ns">WITHIN</span>'}` : '<span class="st st-low">NOT SET</span>'}</div>`;
+
+  if (c.status === 'significant') {
+    h += `<div class="ctrl-row"><span class="ctrl-lbl">Unwanted in context?</span><div class="seg">
+        <button type="button" class="${d.unwanted==='yes'?'on-confirmed':''}" onclick="decide('${x.key}','unwanted','yes')">Yes — unwanted</button>
+        <button type="button" class="${d.unwanted==='no'?'on-not_present':''}" onclick="decide('${x.key}','unwanted','no')">No — justified</button></div></div>
+      <div class="hint">${exceeds === true ? 'The gap exceeds your tolerance. Answering “No” needs a justification, e.g. a real base-rate difference that the metric should not hide.'
+        : exceeds === false ? 'The gap is real but within your tolerance. Answering “Yes” needs a context reason, e.g. the affected group is especially vulnerable.'
+        : 'No tolerance was set: state the reason for your answer.'}</div>
+      <textarea class="mini-textarea" style="margin-top:6px" placeholder="Reason (required)" oninput="note('${x.key}','reason',this.value)">${esc(d.reason || '')}</textarea>`;
+  } else {
+    const ch = d.checks || {};
+    const others = mag.results.filter(o => o.subgroup === r.subgroup && o !== r)
+      .map(o => `${o.clause} ${o.name}: ${o.comparisons.length ? o.comparisons.map(k => `${k.group} ${k.status === 'significant' ? 'significant' : k.status === 'indeterminate' ? 'indeterminate' : 'not distinguishable'}`).join(', ') : 'indeterminate'}`);
+    h += `<div class="hint">No significant disparity on this metric. Before concluding “no concern”, check for hidden unfairness.${c.lowN ? ' Small n: “not distinguishable” may only mean the sample is too small to see a gap.' : ''}</div>
+      <div class="checks">
+        <label><input type="checkbox" ${ch.other?'checked':''} onchange="check('${x.key}','other',this.checked)"> Other metrics for <strong>${esc(r.subgroup)}</strong> reviewed${others.length ? ` — ${esc(others.join(' · '))}` : ' — no other metric computed for this subgroup'}</label>
+        <label><input type="checkbox" ${ch.inter?'checked':''} onchange="check('${x.key}','inter',this.checked)"> Intersectional groups considered (e.g. sex × site)</label>
+        <label><input type="checkbox" ${ch.proc?'checked':''} onchange="check('${x.key}','proc',this.checked)"> Procedural fairness considered (explanation, override, appeal)</label>
+      </div>
+      <div class="ctrl-row"><span class="ctrl-lbl">Unfair on other checks?</span><div class="seg">
+        <button type="button" class="${d.hidden==='yes'?'on-confirmed':''}" onclick="decide('${x.key}','hidden','yes')">Yes — hidden unfairness</button>
+        <button type="button" class="${d.hidden==='no'?'on-not_present':''}" ${ch.other && ch.inter && ch.proc ? '' : 'disabled title="Tick all three checks first"'} onclick="decide('${x.key}','hidden','no')">No — no concern</button></div></div>
+      <textarea class="mini-textarea" style="margin-top:6px" placeholder="Note (what you found in the checks)" oninput="note('${x.key}','note',this.value)">${esc(d.note || '')}</textarea>`;
+  }
+  return h + `</div>`;
+}
+function renderJudge() {
+  const el = document.getElementById('judge');
+  if (!mag) { el.innerHTML = `<div class="empty">No magnitude results yet.</div>`; return; }
+  if (!V.tolLocked) { el.innerHTML = `<div class="empty">Results are hidden until the tolerances above are locked.</div>`; return; }
+  el.innerHTML = comparisons().map(cardHtml).join('') || `<div class="empty">No comparisons.</div>`;
+}
+function decide(key, k, v) {
+  V.dec[key] = V.dec[key] || {};
+  V.dec[key][k] = V.dec[key][k] === v ? undefined : v;
+  V.dec[key].at = new Date().toISOString();
+  save(); renderJudge(); renderOutcome();
+}
+function note(key, k, v) { V.dec[key] = V.dec[key] || {}; V.dec[key][k] = v; save(); clearTimeout(note._t); note._t = setTimeout(renderOutcome, 400); }
+function check(key, k, v) { V.dec[key] = V.dec[key] || {}; V.dec[key].checks = Object.assign({}, V.dec[key].checks, { [k]:v }); if (!v && V.dec[key].hidden === 'no') V.dec[key].hidden = undefined; save(); renderJudge(); renderOutcome(); }
+
+// ─── OUTCOME ────────────────────────────────────────────────────────
+function renderOutcome() {
+  const el = document.getElementById('outcome');
+  if (!mag || !V.tolLocked) { el.innerHTML = `<div class="empty">Appears after tolerances are locked.</div>`; document.getElementById('other-findings').innerHTML = ''; renderValidity(); return; }
+  const xs = comparisons(), by = {};
+  xs.forEach(x => { const o = outcomeOf(x); (by[o] = by[o] || []).push(x); });
+  const lbl = x => x.c ? `${x.r.clause} ${x.r.name} · ${x.r.subgroup}: ${x.c.group} vs ${x.r.referenceGroup} (${sg(x.c.gap)})` : `${x.r.clause} ${x.r.name} · ${x.r.subgroup || '—'}`;
+  const list = k => (by[k] || []).length ? `<ul>${by[k].map(x => `<li>${esc(lbl(x))}</li>`).join('')}</ul>` : '<span style="opacity:.6">—</span>';
+  el.innerHTML = `<div class="grid2">
+      <div></div><div class="gh">Fair</div><div class="gh">Unfair</div>
+      <div class="gr">Biased<span>significant disparity</span></div>
+      <div class="gcell g-fair"><h4>Justified disparity</h4>${list('justified')}</div>
+      <div class="gcell g-unfair"><h4>Unwanted bias</h4>${list('unwanted')}</div>
+      <div class="gr">Unbiased<span>not distinguishable from 0</span></div>
+      <div class="gcell g-fair"><h4>No concern found</h4>${list('none')}</div>
+      <div class="gcell g-unfair"><h4>Hidden unfairness</h4>${list('hidden')}</div>
+      <div></div>
+      <div class="gcell g-ind"><h4>Indeterminate — input for Specify (not yet in scope)</h4>${list('indeterminate')}</div>
+    </div>
+    ${verdictStatus(xs, by)}`;
+
+  // other findings from plan and checklist
+  const row = (cls, tag, html) => `<div class="report-item-row"><span class="item-status ${cls}">${tag}</span><div>${html}</div></div>`;
+  const items = (plan && plan.items) || [];
+  const proc = items.filter(i => i.measurable === 'no'), need = items.filter(i => i.measurable === 'needs_data');
+  const unk = ALL_ITEMS().filter(i => checklist.status[i.id] === 'unknown');
+  let h = '';
+  if (proc.length) h += `<div class="report-section"><h3>Process findings (confirmed, not measured)</h3><div class="report-items">${proc.map(i => row('s-miss','PROCESS',`<strong>${esc(i.clause)}</strong> — ${esc(i.bias)}${i.rationale ? `<br><em>${esc(i.rationale)}</em>` : ''}`)).join('')}</div></div>`;
+  if (need.length) h += `<div class="report-section"><h3>Data requirements (confirmed, needs more data)</h3><div class="report-items">${need.map(i => row('s-unk','DATA',`<strong>${esc(i.clause)}</strong> — ${esc(i.bias)}${i.rationale ? `<br><em>${esc(i.rationale)}</em>` : ''}`)).join('')}</div></div>`;
+  if (unk.length) h += `<div class="report-section"><h3>Unknown in the checklist</h3><div class="report-items">${unk.map(i => row('s-unk','UNKNOWN',`<strong>${esc(i.clause)}</strong> — ${esc(BIAS_NAME(i))} · ${checklist.unkReason[i.id] ? UNK_REASON[checklist.unkReason[i.id]] : 'reason not given'}`)).join('')}</div></div>`;
+  document.getElementById('other-findings').innerHTML = h;
+  renderValidity();
+}
+function verdictStatus(xs, by) {
+  const pend = (by.pending || []).length;
+  const noReason = xs.filter(x => { const o = outcomeOf(x), d = V.dec[x.key] || {};
+    return ((o === 'unwanted' || o === 'justified') && !(d.reason || '').trim()) || ((o === 'hidden' || o === 'none') && !(d.note || '').trim()); }).length;
+  const msgs = [];
+  if (pend) msgs.push(`${pend} comparison(s) not decided yet.`);
+  if (noReason) msgs.push(`${noReason} decision(s) have no reason or note — add one so the verdict can be audited.`);
+  if (!V.owner) msgs.push('Verdict owner not recorded.');
+  return msgs.length ? `<div class="verdict-box v-amber">${msgs.join(' ')}</div>` : `<div class="verdict-box v-green">All comparisons placed, each with a reason, by ${esc(V.owner)}${V.role ? ' (' + esc(V.role) + ')' : ''}.</div>`;
+}
+function renderValidity() {
+  const c = (plan && plan.context) || {};
+  document.getElementById('validity').innerHTML = `<strong>Validity.</strong> This verdict holds for model version <strong>${esc(c.modelVersion || '—')}</strong> in the context above, with the reference “${esc(plan ? plan.referenceDescription : '—')}”.
+    Re-enter at stage C (Metric plan) when the model version, the context or the law changes.`;
+}
+
+// ─── EXPORT ─────────────────────────────────────────────────────────
+function payload() {
+  return {
+    source:'iso24027-verdict', version:1, generated:new Date().toISOString(),
+    owner:V.owner, role:V.role, context:plan ? plan.context : null,
+    plan: plan ? { system:plan.system, lockedAt:plan.lockedAt, decisionRule:plan.decisionRule, referenceDescription:plan.referenceDescription } : null,
+    magnitude: mag ? { generated:mag.generated, file:mag.data && mag.data.file } : null,
+    tolerances:V.tol, tolerancesLockedAt:V.tolLockedAt, log:V.log,
+    comparisons: comparisons().map(x => ({
+      metric:x.r.metric, clause:x.r.clause, name:x.r.name, subgroup:x.r.subgroup, from:x.r.from,
+      group:x.c ? x.c.group : null, referenceGroup:x.r.referenceGroup || null,
+      gap:x.c ? x.c.gap ?? null : null, ci:x.c ? x.c.ci ?? null : null, n:x.c ? x.c.n : null, refN:x.c ? x.c.refN : null,
+      magnitudeStatus:x.c ? x.c.status : 'indeterminate', tolerance:x.tol.value ?? null,
+      outcome:outcomeOf(x), decision:V.dec[x.key] || null }))
+  };
+}
+function exportJSON() { downloadFile('iso24027_verdict_' + new Date().toISOString().slice(0,10) + '.json', JSON.stringify(payload(), null, 2), 'application/json'); }
+function exportCSV() {
+  const p = payload();
+  const lines = [
+    'ISO 24027 Verdict', 'Owner,' + csvCell(p.owner), 'Role,' + csvCell(p.role),
+    'Model version,' + csvCell(p.context && p.context.modelVersion), 'Tolerances locked,' + csvCell(p.tolerancesLockedAt), '',
+    'Metric,Subgroup,Group,Reference group,Gap,CI low,CI high,n,Reference n,Magnitude status,Tolerance,Outcome,Reason / note,From clauses',
+    ...p.comparisons.map(c => [csvCell(c.clause + ' ' + c.name), csvCell(c.subgroup), csvCell(c.group), csvCell(c.referenceGroup),
+      c.gap == null ? '' : f3(c.gap), c.ci ? f3(c.ci[0]) : '', c.ci ? f3(c.ci[1]) : '', c.n ?? '', c.refN ?? '', c.magnitudeStatus,
+      c.tolerance ?? '', OUT_LABEL[c.outcome], csvCell(c.decision ? (c.decision.reason || c.decision.note || '') : ''), csvCell(c.from.join('; '))].join(','))
+  ];
+  downloadFile('iso24027_verdict_' + new Date().toISOString().slice(0,10) + '.csv', '﻿' + lines.join('\n'), 'text/csv');
+}
+
+function renderAll() { renderInputs(); renderTol(); renderJudge(); renderOutcome(); }
+renderAll();
+</script>
+</body>
+</html>

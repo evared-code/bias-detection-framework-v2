@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISO 24027 Metric Plan</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-badges">
+        <span class="badge badge-iso">ISO/IEC 24027:2021</span>
+        <span class="badge badge-proxy">Metric Plan</span>
+      </div>
+      <h1>Metric Plan — from confirmed bias to metric</h1>
+      <p>Stages C–E: measurable? → choose metric → customise → lock before results</p>
+    </div>
+    <div class="header-actions">
+      <a class="btn btn-sm" href="checklist.html" style="text-decoration:none">← Back to checklist</a>
+      <a class="btn btn-sm btn-primary" href="magnitude.html" style="text-decoration:none">Next: magnitude →</a>
+    </div>
+  </div>
+  <div class="nav">
+    <a href="index.html">← Overview</a>
+    <a href="checklist.html">1 · Checklist</a>
+    <a href="metric-plan.html" class="current">2 · Metric plan</a>
+    <a href="magnitude.html">3 · Magnitude</a>
+    <a href="verdict.html">4 · Verdict</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="lockbar unlocked" id="lockbar">
+    <span id="lock-text">Plan not locked. Lock it before you upload data to the Magnitude page, so choices cannot be tuned to the results.</span>
+    <span style="flex:1"></span>
+    <button class="btn btn-sm" id="lock-btn" onclick="toggleLock()">Lock plan</button>
+  </div>
+
+  <fieldset id="plan-fs">
+
+  <!-- SOURCE -->
+  <div class="panel">
+    <h2>Confirmed biases from the checklist</h2>
+    <div class="lead" id="source-lead"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <label class="btn btn-sm" style="cursor:pointer">Import checklist JSON
+        <input type="file" accept="application/json,.json" style="display:none" onchange="importChecklist(this)">
+      </label>
+    </div>
+  </div>
+
+  <!-- CONTEXT -->
+  <div class="panel">
+    <h2><span class="stage">Context</span>Law, domain, stakes</h2>
+    <div class="lead">Context decides which metric fits (step 1) and how results are judged (step 3). It is recorded with the plan; if any of it changes, return here and re-assess.</div>
+    <div class="form-grid">
+      <div class="form-field"><label>Domain / use</label>
+        <input type="text" id="x-domain" placeholder="e.g. fall-risk exercise monitoring for older adults" onchange="setCtx('domain', this.value)"></div>
+      <div class="form-field"><label>Law / regulation / policy</label>
+        <input type="text" id="x-law" placeholder="e.g. PDPA 2562; hospital policy" onchange="setCtx('law', this.value)"></div>
+      <div class="form-field"><label>Model version assessed</label>
+        <input type="text" id="x-model" placeholder="e.g. Gymbot 2.3" onchange="setCtx('modelVersion', this.value)"></div>
+      <div class="form-field" style="grid-column: span 3"><label>Stakes — who is harmed by which error?</label>
+        <input type="text" id="x-stakes" placeholder="e.g. missing a high-risk user (FN) can lead to a fall; over-flagging (FP) costs therapist time" onchange="setCtx('stakes', this.value)"></div>
+    </div>
+  </div>
+
+  <!-- STAGE C: DATA -->
+  <div class="panel">
+    <h2><span class="stage">C</span>What does the case data contain?</h2>
+    <div class="lead">Measurability depends on the data you have, not only on the bias. Use the exact column names of the CSV you will upload.</div>
+    <div class="form-grid">
+      <div class="form-field"><label>Group columns available</label>
+        <input type="text" id="d-groups" placeholder="e.g. sex, site" onchange="setData('groups', this.value)"></div>
+      <div class="form-field"><label>Other columns not usable as subgroup</label>
+        <input type="text" id="d-excluded" placeholder="e.g. participant_id" onchange="setData('excluded', this.value)"></div>
+      <div class="form-field"><label>Minimum n per subgroup</label>
+        <input type="number" id="d-minn" min="1" onchange="setData('minN', this.value)"></div>
+      <div class="form-field"><label>System output</label>
+        <select id="d-raw" onchange="setData('rawScore', this.value === 'yes')">
+          <option value="yes">Raw score (decision rule in E)</option>
+          <option value="no">Flag only (0/1)</option>
+        </select></div>
+      <div class="form-field"><label id="d-outcol-lbl">Score column</label>
+        <input type="text" id="d-outcol" placeholder="e.g. gymbot_score" onchange="setData('outCol', this.value)"></div>
+      <div class="form-field"><label>Reference label</label>
+        <select id="d-reference" onchange="setData('reference', this.value)">
+          <option value="none">None (outputs only)</option>
+          <option value="proxy">Proxy rule (researcher-constructed)</option>
+          <option value="validated">Validated label column</option>
+        </select></div>
+    </div>
+    <div id="ref-rule" style="margin-top:12px"></div>
+    <div style="margin-top:14px;font-size:12px;font-weight:600;color:var(--text2)">Which §7 metrics this data allows</div>
+    <table class="compat" id="compat"></table>
+  </div>
+
+  <!-- STAGE C + D: PER CLAUSE -->
+  <div class="panel">
+    <h2><span class="stage">C · D</span>Is each confirmed bias measurable — and with which metric?</h2>
+    <div class="lead">Suggested metrics are a starting point. Write the rationale for each choice: it becomes your documented technique-selection decision.</div>
+    <div id="cards"></div>
+  </div>
+
+  <!-- STAGE E: CUSTOMISE -->
+  <div class="panel">
+    <h2><span class="stage">E</span>Customise the metrics</h2>
+    <div class="lead">Fix these before seeing any results. They change the numbers, so they must not be adjusted afterwards.</div>
+    <div id="rule-row" class="ctrl-row" style="margin-top:0"></div>
+    <div class="form-grid">
+      <div class="form-field"><label>Positive outcome means</label>
+        <input type="text" id="c-positive" placeholder="e.g. flagged as high risk" oninput="setCustom('positive', this.value)"></div>
+      <div class="form-field"><label>Threshold sensitivity values</label>
+        <input type="text" id="c-sens" placeholder="e.g. 50, 60, 70" oninput="setCustom('sensitivity', this.value)"></div>
+      <div class="form-field"><label>Uncertainty</label>
+        <select id="c-ci" onchange="setCustom('ci', this.value)">
+          <option value="bootstrap95">Bootstrap 95% CI (1,000 resamples)</option>
+        </select></div>
+    </div>
+    <div style="margin-top:14px;font-size:12px;font-weight:600;color:var(--text2)">Reference group per subgroup (gap = other group − reference group)</div>
+    <div id="refgroups" class="form-grid" style="margin-top:6px"></div>
+  </div>
+
+  </fieldset>
+
+  <!-- SUMMARY -->
+  <div class="panel">
+    <h2>Plan summary — what the Magnitude page will compute</h2>
+    <div class="lead">Magnitude only. Tolerances and verdicts belong to the domain expert in the Judge step, not to this plan.</div>
+    <div id="summary"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="exportJSON()">Download plan (JSON)</button>
+      <button class="btn" onclick="exportCSV()">Download plan (CSV)</button>
+      <a class="btn" href="magnitude.html" style="text-decoration:none">Open Magnitude →</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). ISO 24027 Bias Detection Framework · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
+
+<script src="bias-data.js"></script>
+<script>
+// ─── STATE ──────────────────────────────────────────────────────────
+const DEFAULT_PLAN = {
+  context: { domain:'', law:'', stakes:'', modelVersion:'' },
+  data: { groups:'sex, site', excluded:'participant_id', minN:30, rawScore:true, outCol:'gymbot_score',
+          reference:'proxy',
+          proxy: { c1:{ col:'age', op:'>=', val:'65' }, c2:{ col:'bodyRatio', op:'<', val:'0.6' } },
+          labelCol:'', labelPos:'1' },
+  items: {},          // id -> { measurable, subgroup, metrics:[], rationale }
+  custom: { op:'<', threshold:60, positive:'flagged as high risk', sensitivity:'50, 60, 70', ci:'bootstrap95', refGroups:{} },
+  locked: false, lockedAt: null, log: []
+};
+let plan = JSON.parse(JSON.stringify(DEFAULT_PLAN));
+let checklist = { status:{}, notes:{}, unkReason:{}, info:{} };
+
+function load() {
+  const p = lsGet(PLAN_STATE_KEY);
+  if (p) {
+    const d = JSON.parse(JSON.stringify(DEFAULT_PLAN));
+    plan = Object.assign(d, p, {
+      context: Object.assign(d.context, p.context||{}),
+      data: Object.assign(d.data, p.data||{}),
+      custom: Object.assign(d.custom, p.custom||{}) });
+    if (!plan.data.proxy || !plan.data.proxy.c1) plan.data.proxy = d.data.proxy;
+  }
+  const c = lsGet(CHECKLIST_KEY);
+  if (c) checklist = Object.assign(checklist, c);
+}
+function save() { lsSet(PLAN_STATE_KEY, plan); lsSet(PLAN_KEY, payload()); }
+
+const list = s => String(s || '').split(',').map(x => x.trim()).filter(Boolean);
+function refColumns() {
+  const d = plan.data;
+  if (d.reference === 'proxy') return [d.proxy.c1.col, d.proxy.c2 && d.proxy.c2.col].filter(Boolean);
+  if (d.reference === 'validated') return [d.labelCol].filter(Boolean);
+  return [];
+}
+function refDescription() {
+  const d = plan.data;
+  if (d.reference === 'proxy') {
+    const c = x => x && x.col ? `${x.col} ${x.op} ${x.val}` : '';
+    return 'Proxy: high risk = 1 IF ' + [c(d.proxy.c1), c(d.proxy.c2)].filter(Boolean).join(' AND ');
+  }
+  if (d.reference === 'validated') return `Validated label: ${d.labelCol || '(column not set)'} = ${d.labelPos}`;
+  return 'No reference label';
+}
+function ruleDescription() {
+  const d = plan.data, c = plan.custom;
+  return d.rawScore ? `positive (flag = 1) IF ${d.outCol || 'score'} ${c.op} ${c.threshold}` : `positive IF ${d.outCol || 'flag'} = 1`;
+}
+const confirmedItems = () => ALL_ITEMS().filter(i => checklist.status[i.id] === 'confirmed');
+const itemPlan = id => (plan.items[id] = plan.items[id] || { measurable:null, subgroup:'', metrics:[], rationale:'' });
+
+// ─── FEASIBILITY ────────────────────────────────────────────────────
+function metricAvailable(key) {
+  const m = METRICS[key];
+  if (m.needsRef && plan.data.reference === 'none') return { level:'bad', text:'needs a reference label' };
+  if (m.needsRef && plan.data.reference === 'proxy') return { level:'warn', text:'vs proxy, not validated' };
+  return { level:'ok', text:'available' };
+}
+function feasibility(key, subgroup) {
+  if (!subgroup) return { level:'bad', text:'no subgroup' };
+  const sg = subgroup.toLowerCase();
+  if (refColumns().map(s=>s.toLowerCase()).includes(sg)) return { level:'bad', text:'subgroup builds the reference' };
+  if ([plan.data.outCol, ...list(plan.data.excluded)].map(s=>String(s).toLowerCase()).includes(sg)) return { level:'bad', text:'not usable as subgroup' };
+  if (!list(plan.data.groups).map(s=>s.toLowerCase()).includes(subgroup.toLowerCase()))
+    return { level:'bad', text:'group column not in data' };
+  return metricAvailable(key);
+}
+const badge = f => `<span class="feas feas-${f.level}">${f.level==='ok'?'✓':f.level==='warn'?'!':'✕'} ${esc(f.text)}</span>`;
+
+// ─── RENDER ─────────────────────────────────────────────────────────
+function renderSource() {
+  const info = checklist.info || {};
+  const conf = confirmedItems().length;
+  const answered = Object.values(checklist.status).filter(Boolean).length;
+  document.getElementById('source-lead').innerHTML = answered
+    ? `Loaded from the checklist in this browser${info['sys-name'] ? ` for <strong>${esc(info['sys-name'])}</strong>` : ''}: ${answered}/23 answered, <strong>${conf} confirmed</strong>. Only confirmed clauses appear below. Using a different browser? Export the statuses from the checklist report and import them here.`
+    : `No checklist answers found in this browser. Complete the <a href="checklist.html">checklist</a> first, or import a checklist JSON export.`;
+}
+
+function renderData() {
+  const d = plan.data;
+  document.getElementById('d-groups').value = d.groups;
+  document.getElementById('d-excluded').value = d.excluded;
+  document.getElementById('d-reference').value = d.reference;
+  document.getElementById('d-minn').value = d.minN;
+  document.getElementById('d-raw').value = d.rawScore ? 'yes' : 'no';
+  document.getElementById('d-outcol').value = d.outCol;
+  document.getElementById('d-outcol-lbl').textContent = d.rawScore ? 'Score column' : 'Flag column (1 = positive)';
+  const opSel = (cond, v) => `<select class="mini-select" onchange="setProxy('${cond}','op',this.value)">${Object.keys(OPS).map(o => `<option ${o===v?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
+  const cond = k => { const c = d.proxy[k] || {col:'',op:'>=',val:''};
+    return `<input class="mini-input" style="min-width:110px;width:130px" value="${esc(c.col)}" placeholder="column" onchange="setProxy('${k}','col',this.value)">
+            ${opSel(k, c.op)}
+            <input class="mini-input" style="min-width:70px;width:80px" value="${esc(c.val)}" placeholder="value" onchange="setProxy('${k}','val',this.value)">`; };
+  let rr = '';
+  if (d.reference === 'proxy') rr = `<div class="ctrl-row"><span class="ctrl-lbl">Proxy rule</span><span style="font-size:12px">high risk = 1 IF</span> ${cond('c1')} <span style="font-size:12px">AND</span> ${cond('c2')}</div>
+      <div class="hint">Leave the second condition's column empty to use one condition. Columns used here cannot be subgroups.</div>`;
+  else if (d.reference === 'validated') rr = `<div class="ctrl-row"><span class="ctrl-lbl">Label column</span>
+      <input class="mini-input" style="min-width:140px;width:160px" value="${esc(d.labelCol)}" placeholder="e.g. pt_risk" onchange="setData('labelCol', this.value)">
+      <span style="font-size:12px">positive value</span>
+      <input class="mini-input" style="min-width:60px;width:70px" value="${esc(d.labelPos)}" onchange="setData('labelPos', this.value)"></div>`;
+  else rr = `<div class="hint">Without a reference label only demographic parity can be computed.</div>`;
+  document.getElementById('ref-rule').innerHTML = rr;
+  document.getElementById('compat').innerHTML =
+    `<thead><tr><th>Metric</th><th>What it measures</th><th>Needs reference?</th><th>With this data</th></tr></thead><tbody>` +
+    Object.entries(METRICS).map(([k, m]) => `<tr><td>${m.clause} ${m.name}</td><td>${m.measures}</td><td>${m.needsRef ? 'Yes' : 'No'}</td><td>${badge(metricAvailable(k))}</td></tr>`).join('') +
+    `</tbody>` + (d.rawScore ? '' : `<tbody><tr><td colspan="4" style="color:var(--amber)">No raw score: threshold sensitivity cannot be run; metrics use the flag as delivered.</td></tr></tbody>`);
+}
+
+function cardHtml(item) {
+  const id = item.id, p = itemPlan(id), sug = SUGGEST[id] || { process:false, metrics:[] };
+  const groups = list(plan.data.groups);
+  const seg = Object.entries({ yes:'Yes — measure', no:'No — process finding', needs_data:'Needs more data' })
+    .map(([k,l]) => `<button type="button" class="${p.measurable===k?'on-'+k:''}" onclick="setItem('${id}','measurable','${k}')">${l}</button>`).join('');
+  const evidence = (checklist.notes[id] || '').trim();
+  let h = `
+    <div class="plan-card" id="card-${id}">
+      <div class="plan-card-head">
+        <div>
+          <div class="plan-card-title">${esc(BIAS_NAME(item))}</div>
+          <div class="plan-card-ev">${evidence ? 'Evidence: ' + esc(evidence) : 'No evidence recorded in the checklist'}</div>
+        </div>
+        <span class="clause-tag tag-${id[0]}">${item.clause}</span>
+      </div>
+      <div class="ctrl-row"><span class="ctrl-lbl">Measurable?</span><div class="seg">${seg}</div></div>
+      ${sug.process && !p.measurable ? `<div class="hint">Usually a process finding: this bias sits in people or requirements, not in the outputs.</div>` : ''}`;
+
+  if (p.measurable === 'yes') {
+    const opts = groups.map(g => `<option value="${esc(g)}" ${p.subgroup===g?'selected':''}>${esc(g)}</option>`).join('');
+    h += `
+      <div class="ctrl-row"><span class="ctrl-lbl">Subgroup</span>
+        <select class="mini-select" onchange="setItem('${id}','subgroup',this.value)">
+          <option value="">— select —</option>${opts}
+          ${p.subgroup && !groups.includes(p.subgroup) ? `<option value="${esc(p.subgroup)}" selected>${esc(p.subgroup)} (not in data)</option>` : ''}
+        </select>
+      </div>
+      <div class="ctrl-row" style="align-items:flex-start"><span class="ctrl-lbl">Metrics</span>
+        <div class="metric-chips">${Object.entries(METRICS).map(([k, m]) => `
+          <label class="chip ${sug.metrics.includes(k)?'suggested':''}">
+            <input type="checkbox" ${p.metrics.includes(k)?'checked':''} onchange="toggleMetric('${id}','${k}',this.checked)">
+            ${m.clause} ${m.name}${sug.metrics.includes(k)?' <span class="sug">SUGGESTED</span>':''}
+            ${p.metrics.includes(k) ? badge(feasibility(k, p.subgroup)) : ''}
+          </label>`).join('')}
+        </div>
+      </div>
+      ${sug.hint ? `<div class="hint">${sug.hint}</div>` : ''}
+      <div style="margin-top:8px"><span class="ctrl-lbl">Why these metrics?</span>
+        <textarea class="mini-textarea" placeholder="e.g. Under-representation of men would show as different flag rates (demographic parity) and missed high-risk cases (TPR)."
+          oninput="setText('${id}','rationale',this.value)">${esc(p.rationale)}</textarea></div>`;
+  } else if (p.measurable === 'needs_data') {
+    h += `<div style="margin-top:8px"><span class="ctrl-lbl">What data is missing?</span>
+        <textarea class="mini-textarea" placeholder="e.g. no site column in the export; no validated risk labels"
+          oninput="setText('${id}','rationale',this.value)">${esc(p.rationale)}</textarea></div>`;
+  } else if (p.measurable === 'no') {
+    h += `<div style="margin-top:8px"><span class="ctrl-lbl">How will it be assessed instead?</span>
+        <textarea class="mini-textarea" placeholder="e.g. interview the care team about overriding Gymbot scores"
+          oninput="setText('${id}','rationale',this.value)">${esc(p.rationale)}</textarea></div>`;
+  }
+  return h + `</div>`;
+}
+
+function renderCards() {
+  const items = confirmedItems();
+  document.getElementById('cards').innerHTML = items.length
+    ? items.map(cardHtml).join('')
+    : `<div class="empty">No confirmed biases yet. Mark clauses as Confirmed in the <a href="checklist.html">checklist</a>.</div>`;
+}
+
+function usedSubgroups() {
+  const s = new Set();
+  confirmedItems().forEach(i => { const p = plan.items[i.id]; if (p && p.measurable==='yes' && p.subgroup) s.add(p.subgroup); });
+  return [...s];
+}
+
+function renderContext() {
+  const x = plan.context;
+  document.getElementById('x-domain').value = x.domain;
+  document.getElementById('x-law').value = x.law;
+  document.getElementById('x-model').value = x.modelVersion;
+  document.getElementById('x-stakes').value = x.stakes;
+}
+function renderCustom() {
+  const c = plan.custom, d = plan.data;
+  document.getElementById('rule-row').innerHTML = d.rawScore
+    ? `<span class="ctrl-lbl">Decision rule</span><span style="font-size:12px">positive (flag = 1) IF <strong>${esc(d.outCol || 'score')}</strong></span>
+       <select class="mini-select" onchange="setCustom('op', this.value)">${['<','<=','>','>='].map(o => `<option ${o===c.op?'selected':''}>${esc(o)}</option>`).join('')}</select>
+       <input class="mini-input" type="number" style="min-width:70px;width:90px" value="${esc(c.threshold)}" onchange="setCustom('threshold', Number(this.value))">`
+    : `<span class="ctrl-lbl">Decision rule</span><span style="font-size:12px">positive IF <strong>${esc(d.outCol || 'flag')}</strong> = 1 (no threshold: flag delivered by the system)</span>`;
+  document.getElementById('c-positive').value = c.positive;
+  document.getElementById('c-sens').value = c.sensitivity;
+  document.getElementById('c-ci').value = c.ci;
+  const subs = usedSubgroups();
+  document.getElementById('refgroups').innerHTML = subs.length
+    ? subs.map(s => `<div class="form-field"><label>${esc(s)}</label>
+        <input type="text" value="${esc(c.refGroups[s] || '')}" placeholder="e.g. ${s==='sex'?'M':'D01'}" oninput="setRefGroup('${esc(s)}', this.value)"></div>`).join('')
+    : `<div class="hint" style="grid-column: span 3">Appears once a measurable clause has a subgroup.</div>`;
+}
+
+function computations() {
+  const pairs = {};
+  confirmedItems().forEach(i => {
+    const p = plan.items[i.id];
+    if (!p || p.measurable !== 'yes') return;
+    p.metrics.forEach(k => {
+      const key = (p.subgroup || '?') + '|' + k;
+      if (!pairs[key]) pairs[key] = { subgroup:p.subgroup, metric:k, from:[], feas:feasibility(k, p.subgroup) };
+      pairs[key].from.push(i.clause);
+    });
+  });
+  return Object.values(pairs);
+}
+
+function renderSummary() {
+  const conf = confirmedItems();
+  const by = k => conf.filter(i => (plan.items[i.id]||{}).measurable === k);
+  const undecided = conf.filter(i => !(plan.items[i.id]||{}).measurable);
+  const comps = computations();
+  const row = (cls, tag, html) => `<div class="report-item-row"><span class="item-status ${cls}">${tag}</span><div>${html}</div></div>`;
+  let h = `<table class="status-table"><tbody>
+    <tr><td>Confirmed biases</td><td class="num">${conf.length}</td></tr>
+    <tr><td>Measurable</td><td class="num">${by('yes').length}</td></tr>
+    <tr><td>Process findings</td><td class="num">${by('no').length}</td></tr>
+    <tr><td>Need more data</td><td class="num">${by('needs_data').length}</td></tr>
+    <tr><td>Not decided</td><td class="num">${undecided.length}</td></tr></tbody></table>`;
+  if (comps.length) {
+    h += `<div style="margin-top:12px;font-size:12px;font-weight:600">Computations (${comps.length})</div><div class="report-items">` +
+      comps.map(c => {
+        const m = METRICS[c.metric];
+        const cls = c.feas.level==='ok' ? 's-done' : c.feas.level==='warn' ? 's-unk' : 's-miss';
+        const tag = c.feas.level==='bad' ? 'INDETERMINATE' : 'COMPUTE';
+        const ref = plan.custom.refGroups[c.subgroup];
+        return row(cls, tag, `<strong>${m.clause} ${m.name}</strong> by <strong>${esc(c.subgroup || '—')}</strong>${ref ? ` (reference: ${esc(ref)})` : ''} — from ${c.from.join(', ')}<br><span style="font-size:11px">${esc(c.feas.text)}${c.feas.level!=='bad' ? ` · report n (min ${plan.data.minN}), gap, ratio, CI` : ''}</span>`);
+      }).join('') + `</div>`;
+  }
+  const warnings = [];
+  if (undecided.length) warnings.push(`Decide measurability for: ${undecided.map(i=>i.clause).join(', ')}.`);
+  const incomplete = by('yes').filter(i => !plan.items[i.id].subgroup || !plan.items[i.id].metrics.length);
+  if (incomplete.length) warnings.push(`Set subgroup and metrics for: ${incomplete.map(i=>i.clause).join(', ')}.`);
+  const noWhy = by('yes').filter(i => !(plan.items[i.id].rationale||'').trim());
+  if (noWhy.length) warnings.push(`Add a rationale for: ${noWhy.map(i=>i.clause).join(', ')}.`);
+  const missingRef = usedSubgroups().filter(s => !plan.custom.refGroups[s]);
+  if (missingRef.length) warnings.push(`Set a reference group for: ${missingRef.join(', ')}.`);
+  if (!plan.context.domain || !plan.context.stakes) warnings.push('Fill in the context (at least domain and stakes) — the verdict step relies on it.');
+  if (!plan.context.modelVersion) warnings.push('Record the model version, so a later version triggers re-assessment.');
+  if (!plan.locked) warnings.push('Lock the plan before uploading data to the Magnitude page.');
+  if (warnings.length) h += `<div style="margin-top:12px" class="report-items">` + warnings.map((w,i) => row('s-unk', String(i+1), w)).join('') + `</div>`;
+  else h += `<div class="verdict-box v-green" style="margin-top:12px">Plan complete and locked. Ready for the Magnitude page.</div>`;
+  document.getElementById('summary').innerHTML = h;
+}
+
+function renderLock() {
+  const bar = document.getElementById('lockbar');
+  document.getElementById('plan-fs').disabled = plan.locked;
+  bar.className = 'lockbar ' + (plan.locked ? 'locked' : 'unlocked');
+  document.getElementById('lock-btn').textContent = plan.locked ? 'Unlock plan' : 'Lock plan';
+  document.getElementById('lock-text').textContent = plan.locked
+    ? `Plan locked on ${new Date(plan.lockedAt).toLocaleString()}. Unlocking is recorded in the plan log.`
+    : 'Plan not locked. Lock it before you upload data to the Magnitude page, so choices cannot be tuned to the results.';
+}
+
+function renderAll() { renderSource(); renderContext(); renderData(); renderCards(); renderCustom(); renderSummary(); renderLock(); }
+
+// ─── INTERACTIONS ───────────────────────────────────────────────────
+function setCtx(k, v) { plan.context[k] = v; save(); }
+function setProxy(cond, k, v) { plan.data.proxy[cond] = plan.data.proxy[cond] || {col:'',op:'>=',val:''}; plan.data.proxy[cond][k] = v; save(); renderData(); renderCards(); renderSummary(); }
+function setData(k, v) { plan.data[k] = k === 'minN' ? Number(v) || 0 : v; save(); renderData(); renderCards(); renderCustom(); renderSummary(); }
+function setItem(id, k, v) {
+  const p = itemPlan(id);
+  if (k === 'measurable') {
+    p.measurable = p.measurable === v ? null : v;
+    if (p.measurable === 'yes' && !p.metrics.length) p.metrics = [...((SUGGEST[id]||{}).metrics || [])];
+  } else p[k] = v;
+  save(); rerenderCard(id); renderCustom(); renderSummary();
+}
+function rerenderCard(id) {
+  const w = document.createElement('div'); w.innerHTML = cardHtml(ITEM_BY_ID(id)).trim();
+  document.getElementById('card-' + id).replaceWith(w.firstElementChild);
+}
+function toggleMetric(id, k, on) {
+  const p = itemPlan(id), s = new Set(p.metrics);
+  on ? s.add(k) : s.delete(k); p.metrics = [...s];
+  save(); rerenderCard(id); renderSummary();
+}
+function setText(id, k, v) { itemPlan(id)[k] = v; save(); renderSummary(); }
+function setCustom(k, v) { plan.custom[k] = v; save(); if (k === 'op' || k === 'threshold') renderCustom(); }
+function setRefGroup(s, v) { plan.custom.refGroups[s] = v; save(); renderSummary(); }
+
+function toggleLock() {
+  if (!plan.locked) {
+    plan.locked = true; plan.lockedAt = new Date().toISOString();
+    plan.log.push({ action:'locked', at:plan.lockedAt });
+  } else {
+    const reason = prompt('Why are you unlocking the plan? (recorded in the plan log)');
+    if (reason === null) return;
+    plan.locked = false;
+    plan.log.push({ action:'unlocked', at:new Date().toISOString(), reason });
+  }
+  save(); renderLock(); renderSummary();
+}
+
+function importChecklist(input) {
+  const f = input.files && input.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (d.source !== 'iso24027-checklist' || !d.status) throw new Error('Not a checklist export');
+      checklist = { status:d.status||{}, notes:d.notes||{}, unkReason:d.unkReason||{}, info:d.info||{} };
+      lsSet(CHECKLIST_KEY, checklist);
+      renderAll();
+    } catch (e) { alert('Could not import: ' + e.message); }
+    input.value = '';
+  };
+  r.readAsText(f);
+}
+
+// ─── EXPORT ─────────────────────────────────────────────────────────
+function payload() {
+  return {
+    source: 'iso24027-metric-plan', version: 1,
+    generated: new Date().toISOString(),
+    system: (checklist.info||{})['sys-name'] || null,
+    locked: plan.locked, lockedAt: plan.lockedAt, log: plan.log,
+    context: plan.context,
+    data: plan.data, customisation: plan.custom,
+    referenceDescription: refDescription(), decisionRule: ruleDescription(),
+    items: confirmedItems().map(i => {
+      const p = plan.items[i.id] || {};
+      return { id:i.id, clause:i.clause, bias:BIAS_NAME(i), evidence:(checklist.notes[i.id]||'').trim(),
+               measurable:p.measurable||null, subgroup:p.subgroup||null, metrics:p.metrics||[], rationale:p.rationale||'' };
+    }),
+    compute: computations().map(c => ({ subgroup:c.subgroup, metric:c.metric, clause:METRICS[c.metric].clause, name:METRICS[c.metric].name,
+      referenceGroup: plan.custom.refGroups[c.subgroup] || null, from:c.from, feasibility:c.feas.level, note:c.feas.text }))
+  };
+}
+function stamp() { return new Date().toISOString().slice(0,10); }
+function exportJSON() { downloadFile('iso24027_metric_plan_' + stamp() + '.json', JSON.stringify(payload(), null, 2), 'application/json'); }
+function exportCSV() {
+  const p = payload();
+  const lines = [
+    'ISO 24027 Metric Plan',
+    'System,' + csvCell(p.system),
+    'Locked,' + (p.locked ? 'Yes (' + p.lockedAt + ')' : 'No'),
+    'Domain,' + csvCell(p.context.domain),
+    'Law / policy,' + csvCell(p.context.law),
+    'Stakes,' + csvCell(p.context.stakes),
+    'Model version,' + csvCell(p.context.modelVersion),
+    'Reference label,' + csvCell(p.referenceDescription),
+    'Decision rule,' + csvCell(p.decisionRule), '',
+    'Clause,Bias,Measurable,Subgroup,Metrics,Rationale / missing data / alternative method,Evidence',
+    ...p.items.map(i => [i.clause, csvCell(i.bias), i.measurable || 'Not decided', csvCell(i.subgroup || ''),
+      csvCell(i.metrics.map(k => METRICS[k].clause + ' ' + METRICS[k].name).join('; ')), csvCell(i.rationale), csvCell(i.evidence)].join(',')),
+    '', 'Computations', 'Metric,Subgroup,Reference group,From clauses,Feasibility,Note',
+    ...p.compute.map(c => [csvCell(c.clause + ' ' + c.name), csvCell(c.subgroup), csvCell(c.referenceGroup || ''), csvCell(c.from.join('; ')), c.feasibility, csvCell(c.note)].join(','))
+  ];
+  downloadFile('iso24027_metric_plan_' + stamp() + '.csv', '﻿' + lines.join('\n'), 'text/csv');
+}
+
+// ─── INIT ───────────────────────────────────────────────────────────
+load(); renderAll(); save();
+</script>
+</body>
+</html>

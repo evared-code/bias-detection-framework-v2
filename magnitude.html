@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISO 24027 Magnitude</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .res-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 12px; }
+  .res-title { font-size: 13px; font-weight: 600; }
+  .res-sub { font-size: 11px; color: var(--text3); }
+  .gtable { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  .gtable th, .gtable td { padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: right; font-variant-numeric: tabular-nums; }
+  .gtable th:first-child, .gtable td:first-child { text-align: left; }
+  .gtable th { font-size: 11px; color: var(--text2); font-weight: 600; }
+  .gtable tr.ref td { background: var(--surface2); }
+  .st { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+  .st-sig { background: var(--red-light); color: var(--red); }
+  .st-ns { background: var(--green-light); color: var(--green); }
+  .st-ind { background: var(--surface2); color: var(--text2); border: 1px dashed var(--border2); }
+  .st-low { background: var(--amber-light); color: var(--amber); }
+  .drop { display: block; border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 22px; text-align: center; font-size: 13px; color: var(--text2); cursor: pointer; }
+  .drop:hover { background: var(--surface2); }
+  .kv { font-size: 12px; color: var(--text2); line-height: 1.8; }
+  .kv strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-badges">
+        <span class="badge badge-iso">ISO/IEC 24027:2021</span>
+        <span class="badge badge-proxy">Magnitude</span>
+      </div>
+      <h1>F · Compute magnitude</h1>
+      <p>Size of bias per subgroup and metric, with n and 95% CI. No verdict is produced on this page.</p>
+    </div>
+    <div class="header-actions">
+      <a class="btn btn-sm" href="metric-plan.html" style="text-decoration:none">← Metric plan</a>
+      <a class="btn btn-sm btn-primary" href="verdict.html" style="text-decoration:none">Next: verdict →</a>
+    </div>
+  </div>
+  <div class="nav">
+    <a href="index.html">← Overview</a>
+    <a href="checklist.html">1 · Checklist</a>
+    <a href="metric-plan.html">2 · Metric plan</a>
+    <a href="magnitude.html" class="current">3 · Magnitude</a>
+    <a href="verdict.html">4 · Verdict</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="panel">
+    <h2>Locked metric plan</h2>
+    <div class="lead">The plan decides what is computed and how. This page does not let you change it.</div>
+    <div id="plan-info" class="kv"></div>
+    <div style="margin-top:10px">
+      <label class="btn btn-sm" style="cursor:pointer">Import plan JSON
+        <input type="file" accept=".json,application/json" style="display:none" onchange="readJSONFile(this, importPlan)">
+      </label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Case data</h2>
+    <div class="lead">One row per decision. Column names must match the plan. The file is read in your browser and never uploaded anywhere.</div>
+    <label class="drop" id="drop">
+      Click to choose a CSV file, or drop it here
+      <input type="file" accept=".csv,text/csv" style="display:none" onchange="readCSV(this.files[0])">
+    </label>
+    <div id="data-info" class="kv" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Results</h2>
+    <div class="lead">Gap = other group − reference group. “Significant disparity” means the 95% CI excludes 0. Whether a gap is acceptable is decided on the Verdict page.</div>
+    <div id="results"><div class="empty">Load a plan and a CSV file to compute.</div></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="exportJSON()">Download results (JSON)</button>
+      <button class="btn" onclick="exportCSV()">Download results (CSV)</button>
+      <a class="btn" href="verdict.html" style="text-decoration:none">Open Verdict →</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). ISO 24027 Bias Detection Framework · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
+
+<script src="bias-data.js"></script>
+<script>
+let plan = lsGet(PLAN_KEY);
+let rows = null, fileName = null, results = null;
+
+// ─── PLAN ───────────────────────────────────────────────────────────
+function importPlan(d) {
+  if (d.source !== 'iso24027-metric-plan') { alert('Not a metric plan export.'); return; }
+  plan = d; lsSet(PLAN_KEY, d); renderPlan(); compute();
+}
+function renderPlan() {
+  const el = document.getElementById('plan-info');
+  if (!plan) { el.innerHTML = 'No plan found in this browser. Create one on the <a href="metric-plan.html">Metric plan</a> page or import a plan JSON.'; return; }
+  const c = plan.context || {};
+  el.innerHTML = `
+    <strong>System:</strong> ${esc(plan.system || '—')} · <strong>Model version:</strong> ${esc(c.modelVersion || '—')}<br>
+    <strong>Plan:</strong> ${plan.locked ? `<span class="st st-ns">LOCKED</span> ${esc(new Date(plan.lockedAt).toLocaleString())}` : `<span class="st st-low">NOT LOCKED</span> results will be marked as computed from an unlocked plan`}<br>
+    <strong>Decision rule:</strong> ${esc(plan.decisionRule || '—')}<br>
+    <strong>Reference:</strong> ${esc(plan.referenceDescription || '—')}<br>
+    <strong>Computations:</strong> ${plan.compute.length} · <strong>Minimum n:</strong> ${plan.data.minN}`;
+}
+
+// ─── CSV ────────────────────────────────────────────────────────────
+function parseCSV(text) {
+  text = text.replace(/^﻿/, '');
+  const out = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) {
+      if (ch === '"') { if (text[i+1] === '"') { cell += '"'; i++; } else q = false; }
+      else cell += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === ',') { row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i+1] === '\n') i++;
+      row.push(cell); cell = '';
+      if (row.some(x => x.trim() !== '')) out.push(row);
+      row = [];
+    } else cell += ch;
+  }
+  row.push(cell); if (row.some(x => x.trim() !== '')) out.push(row);
+  const head = out.shift().map(h => h.trim());
+  return { head, rows: out.map(r => Object.fromEntries(head.map((h, i) => [h, (r[i] || '').trim()]))) };
+}
+function readCSV(file) {
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => { const p = parseCSV(r.result); rows = p.rows; rows._head = p.head; fileName = file.name; compute(); };
+  r.readAsText(file);
+}
+const drop = document.getElementById('drop');
+drop.addEventListener('dragover', e => { e.preventDefault(); });
+drop.addEventListener('drop', e => { e.preventDefault(); readCSV(e.dataTransfer.files[0]); });
+
+// ─── ENGINE ─────────────────────────────────────────────────────────
+const num = v => { const n = Number(v); return v !== '' && !isNaN(n) ? n : v; };
+const test = (v, op, target) => OPS[op] ? OPS[op](num(v), num(target)) : false;
+
+function prepare(threshold) {
+  const d = plan.data, cu = plan.customisation;
+  return rows.map(r => {
+    const raw = r[d.outCol];
+    if (raw === undefined || raw === '') return null;
+    let flag;
+    if (d.rawScore) { const s = Number(raw); if (isNaN(s)) return null; flag = OPS[cu.op](s, threshold); }
+    else flag = String(raw) === '1' || String(raw).toLowerCase() === 'true';
+    let ref = null;
+    if (d.reference === 'proxy') {
+      const conds = [d.proxy.c1, d.proxy.c2].filter(c => c && c.col);
+      ref = conds.every(c => test(r[c.col], c.op, c.val));
+    } else if (d.reference === 'validated' && d.labelCol) ref = String(r[d.labelCol]) === String(d.labelPos);
+    return { r, flag, ref };
+  }).filter(Boolean);
+}
+
+function stats(list) {
+  const s = { n:list.length, pos:0, refPos:0, TP:0, FP:0, FN:0, TN:0 };
+  list.forEach(x => {
+    if (x.flag) s.pos++;
+    if (x.ref !== null) {
+      if (x.ref) s.refPos++;
+      if (x.flag && x.ref) s.TP++; else if (x.flag && !x.ref) s.FP++; else if (!x.flag && x.ref) s.FN++; else s.TN++;
+    }
+  });
+  return s;
+}
+const div = (a, b) => b > 0 ? a / b : null;
+const RATES = {
+  rate: s => div(s.pos, s.n),
+  tpr:  s => div(s.TP, s.TP + s.FN),
+  fpr:  s => div(s.FP, s.FP + s.TN),
+  err:  s => div(s.FP + s.FN, s.n),
+};
+// which rate(s) each metric compares
+const METRIC_RATES = { dp:['rate'], eop:['tpr'], pe:['fpr'], eo:['tpr','fpr'], cm:['err'] };
+const RATE_LABEL = { rate:'flag rate', tpr:'TPR', fpr:'FPR', err:'error rate' };
+const RATE_REASON = { tpr:'no reference positives', fpr:'no reference negatives', rate:'no rows', err:'no rows' };
+
+// gap for a metric between two stats; eo = component with largest |gap|
+function gapOf(metric, so, sr) {
+  const parts = METRIC_RATES[metric].map(k => {
+    const a = RATES[k](so), b = RATES[k](sr);
+    return { k, a, b, gap: a === null || b === null ? null : a - b };
+  });
+  if (parts.some(p => p.gap === null)) return { gap:null, parts };
+  const main = parts.reduce((m, p) => Math.abs(p.gap) > Math.abs(m.gap) ? p : m);
+  return { gap: main.gap, main, parts };
+}
+
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function resample(list, rand) { const o = new Array(list.length); for (let i = 0; i < list.length; i++) o[i] = list[Math.floor(rand() * list.length)]; return o; }
+function bootstrapCI(metric, lo, lr, B = 1000) {
+  // CI per rate component (equalized odds has two: TPR and FPR)
+  const rand = rng(24027), draws = {};
+  METRIC_RATES[metric].forEach(k => draws[k] = []);
+  for (let b = 0; b < B; b++) {
+    const so = stats(resample(lo, rand)), sr = stats(resample(lr, rand));
+    METRIC_RATES[metric].forEach(k => { const a = RATES[k](so), c = RATES[k](sr); if (a !== null && c !== null) draws[k].push(a - c); });
+  }
+  const cis = {};
+  for (const k in draws) {
+    const g = draws[k];
+    if (g.length < B * 0.9) { cis[k] = null; continue; }
+    g.sort((x, y) => x - y);
+    const q = p => g[Math.min(g.length - 1, Math.floor(p * g.length))];
+    cis[k] = [q(0.025), q(0.975)];
+  }
+  return cis;
+}
+
+function compute() {
+  renderPlan();
+  const info = document.getElementById('data-info');
+  if (!plan || !rows) { info.innerHTML = rows ? '' : 'No file loaded.'; renderResults(); return; }
+  const d = plan.data, head = rows._head;
+  const need = [d.outCol, ...(d.reference === 'proxy' ? [d.proxy.c1, d.proxy.c2].filter(c => c && c.col).map(c => c.col) : []),
+                ...(d.reference === 'validated' ? [d.labelCol] : [])].filter(Boolean);
+  const missing = need.filter(c => !head.includes(c));
+  const base = prepare(plan.customisation.threshold);
+  info.innerHTML = `<strong>File:</strong> ${esc(fileName)} · <strong>Rows:</strong> ${rows.length} · <strong>Used:</strong> ${base.length}
+    ${rows.length - base.length ? ` (${rows.length - base.length} skipped: missing or non-numeric output)` : ''}<br>
+    <strong>Columns:</strong> ${head.map(esc).join(', ')}
+    ${missing.length ? `<br><span class="st st-sig">MISSING</span> ${missing.map(esc).join(', ')} — required by the plan` : ''}`;
+
+  const sens = plan.data.rawScore ? String(plan.customisation.sensitivity || '').split(',').map(x => Number(x.trim())).filter(x => !isNaN(x)) : [];
+  results = plan.compute.map(c => {
+    const res = { subgroup:c.subgroup, metric:c.metric, clause:c.clause, name:c.name, from:c.from, referenceGroup:c.referenceGroup, groups:[], comparisons:[], sensitivity:[] };
+    const fail = reason => { res.status = 'indeterminate'; res.reason = reason; return res; };
+    if (c.feasibility === 'bad') return fail('Plan: ' + c.note);
+    if (missing.length) return fail('Required column missing: ' + missing.join(', '));
+    if (!head.includes(c.subgroup)) return fail(`Subgroup column "${c.subgroup}" not in data`);
+    if (METRICS[c.metric].needsRef && d.reference === 'none') return fail('No reference label');
+
+    const groupsOf = list => { const m = {}; list.forEach(x => { const g = x.r[c.subgroup] || '(blank)'; (m[g] = m[g] || []).push(x); }); return m; };
+    const gm = groupsOf(base);
+    const names = Object.keys(gm).sort();
+    if (names.length < 2) return fail('Fewer than two groups in the data');
+    let ref = c.referenceGroup && gm[c.referenceGroup] ? c.referenceGroup : names.reduce((a, b) => gm[b].length > gm[a].length ? b : a);
+    if (c.referenceGroup && !gm[c.referenceGroup]) res.refNote = `Planned reference "${c.referenceGroup}" not in data; used largest group "${ref}".`;
+    else if (!c.referenceGroup) res.refNote = `No reference group in plan; used largest group "${ref}".`;
+    res.referenceGroup = ref;
+    res.groups = names.map(g => Object.assign({ group:g }, stats(gm[g])));
+    const sr = stats(gm[ref]);
+    names.filter(g => g !== ref).forEach(g => {
+      const so = stats(gm[g]);
+      const r = gapOf(c.metric, so, sr);
+      const cmp = { group:g, n:so.n, refN:sr.n, parts:r.parts.map(p => ({ rate:p.k, value:p.a, refValue:p.b, gap:p.gap })) };
+      if (r.gap === null) {
+        const bad = r.parts.find(p => p.gap === null);
+        cmp.status = 'indeterminate';
+        cmp.reason = `${RATE_LABEL[bad.k]} undefined: ${RATE_REASON[bad.k]} in ${bad.a === null ? g : ref}`;
+      } else {
+        cmp.gap = r.gap; cmp.rate = r.main.k; cmp.value = r.main.a; cmp.refValue = r.main.b;
+        cmp.ratio = r.main.b ? r.main.a / r.main.b : null;
+        const cis = bootstrapCI(c.metric, gm[g], gm[ref]);
+        cmp.parts.forEach(p => p.ci = cis[p.rate]);
+        cmp.ci = cis[r.main.k];
+        cmp.lowN = so.n < d.minN || sr.n < d.minN;
+        const excl0 = ci => ci && (ci[0] > 0 || ci[1] < 0);
+        if (cmp.parts.some(p => !p.ci)) { cmp.status = 'indeterminate'; cmp.reason = 'CI could not be estimated (rate undefined in many resamples)'; }
+        else cmp.status = cmp.parts.some(p => excl0(p.ci)) ? 'significant' : 'not_distinguishable';
+      }
+      res.comparisons.push(cmp);
+    });
+    if (sens.length) {
+      res.sensitivity = sens.map(t => {
+        const gm2 = groupsOf(prepare(t)); const out = { threshold:t, gaps:{} };
+        names.filter(g => g !== ref).forEach(g => {
+          out.gaps[g] = gm2[g] && gm2[ref] ? gapOf(c.metric, stats(gm2[g]), stats(gm2[ref])).gap : null;
+        });
+        return out;
+      });
+    }
+    res.status = res.comparisons.every(x => x.status === 'indeterminate') ? 'indeterminate' : 'measured';
+    return res;
+  });
+  lsSet(MAG_KEY, payload());
+  renderResults();
+}
+
+// ─── RENDER ─────────────────────────────────────────────────────────
+const f3 = v => v === null || v === undefined ? '—' : (Math.round(v * 1000) / 1000).toFixed(3);
+const sg = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + f3(v);
+function statusBadge(c) {
+  if (c.status === 'indeterminate') return `<span class="st st-ind">INDETERMINATE</span>`;
+  const main = c.status === 'significant' ? `<span class="st st-sig">SIGNIFICANT DISPARITY</span>` : `<span class="st st-ns">NOT DISTINGUISHABLE FROM 0</span>`;
+  return main + (c.lowN ? ` <span class="st st-low">n &lt; ${plan.data.minN}</span>` : '');
+}
+function renderResults() {
+  const el = document.getElementById('results');
+  if (!results) { el.innerHTML = `<div class="empty">Load a plan and a CSV file to compute.</div>`; return; }
+  if (!results.length) { el.innerHTML = `<div class="empty">The plan has no computations.</div>`; return; }
+  el.innerHTML = results.map(r => {
+    let h = `<div class="res-card"><div class="plan-card-head"><div>
+      <div class="res-title">${esc(r.clause)} ${esc(r.name)} by ${esc(r.subgroup || '—')}</div>
+      <div class="res-sub">From ${r.from.join(', ')}${r.referenceGroup ? ` · reference group: ${esc(r.referenceGroup)}` : ''}${r.refNote ? ` · ${esc(r.refNote)}` : ''}</div>
+      </div></div>`;
+    if (r.status === 'indeterminate' && !r.comparisons.length) return h + `<div style="margin-top:8px"><span class="st st-ind">INDETERMINATE</span> <span style="font-size:12px">${esc(r.reason)}</span></div></div>`;
+    h += `<table class="gtable"><thead><tr><th>Group</th><th>n</th><th>Flagged</th><th>Flag rate</th><th>Ref. positives</th><th>TPR</th><th>FPR</th></tr></thead><tbody>` +
+      r.groups.map(g => `<tr class="${g.group === r.referenceGroup ? 'ref' : ''}"><td>${esc(g.group)}${g.group === r.referenceGroup ? ' (ref)' : ''}</td><td>${g.n}</td><td>${g.pos}</td><td>${f3(RATES.rate(g))}</td><td>${g.refPos}</td><td>${f3(RATES.tpr(g))}</td><td>${f3(RATES.fpr(g))}</td></tr>`).join('') +
+      `</tbody></table>`;
+    h += `<table class="gtable"><thead><tr><th>Comparison</th><th>Rate</th><th>Value</th><th>Ref.</th><th>Gap</th><th>Ratio</th><th>95% CI</th><th style="text-align:left">Status</th></tr></thead><tbody>` +
+      r.comparisons.map(c => c.status === 'indeterminate' && c.gap === undefined
+        ? `<tr><td>${esc(c.group)} vs ${esc(r.referenceGroup)}</td><td colspan="6" style="text-align:left">${esc(c.reason)}</td><td style="text-align:left">${statusBadge(c)}</td></tr>`
+        : `<tr><td>${esc(c.group)} vs ${esc(r.referenceGroup)}</td><td>${RATE_LABEL[c.rate]}</td><td>${f3(c.value)}</td><td>${f3(c.refValue)}</td><td><strong>${sg(c.gap)}</strong></td><td>${c.ratio === null ? '—' : f3(c.ratio)}</td><td>${c.ci ? `[${sg(c.ci[0])}, ${sg(c.ci[1])}]` : '—'}</td><td style="text-align:left">${statusBadge(c)}</td></tr>` +
+          (c.parts.length > 1 ? `<tr><td colspan="8" style="text-align:left;font-size:11px;color:var(--text3)">Components: ${c.parts.map(p => `Δ${RATE_LABEL[p.rate]} ${sg(p.gap)} [${p.ci ? sg(p.ci[0]) + ', ' + sg(p.ci[1]) : '—'}]`).join(' · ')} — gap shown = larger component; significant if either component's CI excludes 0</td></tr>` : '')
+      ).join('') + `</tbody></table>`;
+    if (r.sensitivity.length) {
+      h += `<div class="res-sub" style="margin-top:6px">Threshold sensitivity (gap at each threshold): ` +
+        r.comparisons.map(c => `${esc(c.group)}: ` + r.sensitivity.map(s => `${s.threshold} → ${sg(s.gaps[c.group])}`).join(', ')).join(' · ') + `</div>`;
+    }
+    return h + `</div>`;
+  }).join('');
+}
+
+// ─── EXPORT ─────────────────────────────────────────────────────────
+function payload() {
+  return {
+    source:'iso24027-magnitude', version:1, generated:new Date().toISOString(),
+    plan: plan ? { system:plan.system, locked:plan.locked, lockedAt:plan.lockedAt, context:plan.context, decisionRule:plan.decisionRule,
+                   referenceDescription:plan.referenceDescription, minN:plan.data.minN, generated:plan.generated } : null,
+    data: rows ? { file:fileName, rows:rows.length } : null,
+    ci:'bootstrap 95%, 1000 resamples, seed 24027',
+    results: results || []
+  };
+}
+function exportJSON() {
+  if (!results) return alert('Nothing to export yet.');
+  downloadFile('iso24027_magnitude_' + new Date().toISOString().slice(0,10) + '.json', JSON.stringify(payload(), null, 2), 'application/json');
+}
+function exportCSV() {
+  if (!results) return alert('Nothing to export yet.');
+  const lines = ['Metric,Subgroup,From clauses,Group,Reference group,n,Reference n,Rate,Value,Reference value,Gap,Ratio,CI low,CI high,Status,Low n,Reason'];
+  results.forEach(r => {
+    if (!r.comparisons.length) lines.push([csvCell(r.clause + ' ' + r.name), csvCell(r.subgroup), csvCell(r.from.join('; ')), '', '', '', '', '', '', '', '', '', '', '', 'indeterminate', '', csvCell(r.reason)].join(','));
+    r.comparisons.forEach(c => lines.push([csvCell(r.clause + ' ' + r.name), csvCell(r.subgroup), csvCell(r.from.join('; ')), csvCell(c.group), csvCell(r.referenceGroup),
+      c.n, c.refN, c.rate ? RATE_LABEL[c.rate] : '', f3(c.value), f3(c.refValue), f3(c.gap), c.ratio == null ? '' : f3(c.ratio),
+      c.ci ? f3(c.ci[0]) : '', c.ci ? f3(c.ci[1]) : '', c.status, c.lowN ? 'yes' : '', csvCell(c.reason || '')].join(',')));
+  });
+  downloadFile('iso24027_magnitude_' + new Date().toISOString().slice(0,10) + '.csv', '﻿' + lines.join('\n'), 'text/csv');
+}
+
+renderPlan(); compute();
+</script>
+</body>
+</html>

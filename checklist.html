@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISO 24027 Bias Detection Checklist</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-badges">
+        <span class="badge badge-iso">ISO/IEC 24027:2021</span>
+        <span class="badge badge-proxy">Bias Detection Checklist</span>
+      </div>
+      <h1>Bias Audit — Process Checklist</h1>
+      <p>CareMove / HarmonicAI Use Case · Singjai A., CMU Software Engineering · 2026</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-sm" onclick="resetAll()">Reset all</button>
+      <button class="btn btn-sm" onclick="showReport()">Generate report</button>
+      <a class="btn btn-sm btn-primary" href="metric-plan.html" style="text-decoration:none">Next: metric plan →</a>
+    </div>
+  </div>
+  <div class="nav">
+    <a href="index.html">← Overview</a>
+    <a href="checklist.html" class="current">1 · Checklist</a>
+    <a href="metric-plan.html">2 · Metric plan</a>
+    <a href="magnitude.html">3 · Magnitude</a>
+    <a href="verdict.html">4 · Verdict</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="system-form">
+    <div style="font-size:13px;font-weight:600;margin-bottom:2px">System / deployment information</div>
+    <div style="font-size:12px;color:var(--text2)">This information will appear in the generated report.</div>
+    <div class="form-grid">
+      <div class="form-field"><label>System name</label><input type="text" id="sys-name" placeholder="e.g. CareMove Gymbot v2" oninput="saveInfo()"></div>
+      <div class="form-field"><label>Auditor name</label><input type="text" id="auditor" placeholder="e.g. username" oninput="saveInfo()"></div>
+      <div class="form-field"><label>Audit date</label><input type="date" id="audit-date" oninput="saveInfo()"></div>
+      <div class="form-field"><label>Deployment context</label><input type="text" id="context" placeholder="e.g. Elderly exercise monitoring, northern Thailand" oninput="saveInfo()"></div>
+      <div class="form-field"><label>AI task</label><input type="text" id="ai-task" placeholder="e.g. Exercise risk scoring" oninput="saveInfo()"></div>
+      <div class="form-field"><label>Audit scope</label>
+        <select id="scope" onchange="saveInfo()">
+          <option>Pre-deployment</option>
+          <option>Post-deployment</option>
+          <option>Periodic review</option>
+          <option>Incident investigation</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="howto">
+    <strong>Stage B — confirm the bias list.</strong> For each clause, record whether the <em>bias</em> named under the question is present in this system:
+    <strong>Confirmed</strong>, <strong>Not present</strong> or <strong>Unknown</strong>. The status refers to the bias, not to a yes/no answer to the question.
+    Add evidence for every status. Confirmed biases move on to the <a href="metric-plan.html">Metric plan</a>, where you decide which ones can be measured and how.
+  </div>
+
+  <div class="summary">
+    <div class="stat"><div class="stat-num" id="s-done" style="color:var(--gold-deep)">0/23</div><div class="stat-lbl">Answered</div></div>
+    <div class="stat"><div class="stat-num" id="s-conf" style="color:var(--red)">0</div><div class="stat-lbl">Confirmed</div></div>
+    <div class="stat"><div class="stat-num" id="s-np" style="color:var(--green)">0</div><div class="stat-lbl">Not present</div></div>
+    <div class="stat"><div class="stat-num" id="s-unk" style="color:var(--amber)">0</div><div class="stat-lbl">Unknown</div></div>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+
+  <div class="cat-block" id="cat-a-block">
+    <div class="cat-header" onclick="toggleCat('a')">
+      <span class="cat-pill pill-a">A</span>
+      <span class="cat-title">Process &amp; human cognitive bias</span>
+      <div class="cat-progress">
+        <div class="cat-prog-bar"><div class="cat-prog-fill fill-a" id="prog-a-fill" style="width:0%"></div></div>
+        <span class="cat-pct" id="prog-a-pct" style="color:var(--purple)">0/9</span>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="cat-items" id="cat-a-items"></div>
+  </div>
+
+  <div class="cat-block" id="cat-b-block">
+    <div class="cat-header" onclick="toggleCat('b')">
+      <span class="cat-pill pill-b">B</span>
+      <span class="cat-title">Data bias</span>
+      <div class="cat-progress">
+        <div class="cat-prog-bar"><div class="cat-prog-fill fill-b" id="prog-b-fill" style="width:0%"></div></div>
+        <span class="cat-pct" id="prog-b-pct" style="color:var(--teal)">0/8</span>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="cat-items" id="cat-b-items"></div>
+  </div>
+
+  <div class="cat-block" id="cat-c-block">
+    <div class="cat-header" onclick="toggleCat('c')">
+      <span class="cat-pill pill-c">C</span>
+      <span class="cat-title">Engineering decision bias</span>
+      <div class="cat-progress">
+        <div class="cat-prog-bar"><div class="cat-prog-fill fill-c" id="prog-c-fill" style="width:0%"></div></div>
+        <span class="cat-pct" id="prog-c-pct" style="color:var(--coral)">0/6</span>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="cat-items" id="cat-c-items"></div>
+  </div>
+
+</div>
+
+<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). ISO 24027 Bias Detection Framework · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
+
+<!-- REPORT MODAL -->
+<div class="modal-bg" id="modal" style="display:none" onclick="if(event.target===this)closeReport()">
+  <div class="modal" id="report-content">
+    <h2>ISO 24027 Bias Audit Report — Stage B</h2>
+    <div class="meta" id="report-meta"></div>
+
+    <div class="report-section">
+      <h3>Bias status by category</h3>
+      <div id="report-cats"></div>
+      <div id="report-verdict" class="verdict-box"></div>
+    </div>
+    <div class="report-section" id="confirmed-section">
+      <h3>Confirmed — continue in Metric plan</h3>
+      <div id="report-confirmed" class="report-items"></div>
+    </div>
+    <div class="report-section" id="unknown-section">
+      <h3>Unknown — open questions</h3>
+      <div id="report-unknown" class="report-items"></div>
+    </div>
+    <div class="report-section" id="np-section">
+      <h3>Not present — with evidence</h3>
+      <div id="report-np" class="report-items"></div>
+    </div>
+    <div class="report-section" id="open-section">
+      <h3>Not yet answered</h3>
+      <div id="report-open" class="report-items"></div>
+    </div>
+    <div class="report-section">
+      <h3>Proxy metric readiness</h3>
+      <div id="report-readiness" class="report-items"></div>
+    </div>
+    <div class="report-section">
+      <h3>Recommended next steps</h3>
+      <div id="report-nextsteps" class="report-items"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="window.print()">Print / Save as PDF</button>
+      <button class="btn" onclick="exportCSV()">Export as CSV</button>
+      <button class="btn" onclick="exportJSON()">Export statuses (JSON)</button>
+      <button class="btn" onclick="closeReport()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="bias-data.js"></script>
+<script>
+let state = { status:{}, notes:{}, unkReason:{}, info:{} };
+const INFO_FIELDS = ['sys-name','auditor','audit-date','context','ai-task','scope'];
+
+function save() { lsSet(CHECKLIST_KEY, state); }
+function load() {
+  const s = lsGet(CHECKLIST_KEY);
+  if (s) state = Object.assign(state, { status:s.status||{}, notes:s.notes||{}, unkReason:s.unkReason||{}, info:s.info||{} });
+}
+function saveInfo() {
+  INFO_FIELDS.forEach(f => state.info[f] = document.getElementById(f).value);
+  save();
+}
+function restoreInfo() {
+  INFO_FIELDS.forEach(f => { if (state.info[f]) document.getElementById(f).value = state.info[f]; });
+  if (!document.getElementById('audit-date').value) document.getElementById('audit-date').value = new Date().toISOString().slice(0,10);
+}
+
+// ─── RENDER ─────────────────────────────────────────────────────────
+function itemHtml(item, cat) {
+  const id = item.id, st = state.status[id];
+  const hasNote = state.notes[id] && state.notes[id].trim();
+  return `
+    <div class="check-item" id="item-${id}">
+      <div class="check-content">
+        <div class="check-q">${item.q}</div>
+        <div class="check-sub">${item.sub}</div>
+        <div class="ctrl-row">
+          <span class="ctrl-lbl">Bias present?</span>
+          <div class="seg">${Object.entries(STATUS).map(([k,l]) =>
+            `<button type="button" class="${st===k?'on-'+k:''}" onclick="setStatus('${id}','${k}')">${l}</button>`).join('')}</div>
+        </div>
+        ${st === 'unknown' ? `
+        <div class="ctrl-row">
+          <span class="ctrl-lbl">Why unknown?</span>
+          <select class="mini-select" onchange="setReason('${id}',this.value)">
+            <option value="">— select —</option>
+            ${Object.entries(UNK_REASON).map(([k,l]) => `<option value="${k}" ${state.unkReason[id]===k?'selected':''}>${l}</option>`).join('')}
+          </select>
+        </div>` : ''}
+        ${st === 'confirmed' ? `<div class="hint">→ Decide whether and how to measure this in the <a href="metric-plan.html">Metric plan</a>.</div>` : ''}
+        <div class="notes-field">
+          <button class="notes-toggle" onclick="toggleNote('${id}')">${hasNote ? '✎ evidence / note' : '+ add evidence / note'}</button>
+          <textarea class="notes-input ${hasNote ? 'open' : ''}" id="note-${id}" placeholder="Evidence for this status (document, interview, data check)..."
+                    oninput="saveNote('${id}')">${esc(state.notes[id] || '')}</textarea>
+        </div>
+      </div>
+      <span class="clause-tag tag-${cat}">${item.clause}</span>
+    </div>`;
+}
+function renderItems(cat) { document.getElementById('cat-' + cat + '-items').innerHTML = ITEMS[cat].map(i => itemHtml(i, cat)).join(''); }
+function renderItem(id) {
+  const cat = id[0], item = ITEMS[cat].find(i => i.id === id);
+  const w = document.createElement('div'); w.innerHTML = itemHtml(item, cat).trim();
+  document.getElementById('item-' + id).replaceWith(w.firstElementChild);
+}
+function renderAll() { ['a','b','c'].forEach(renderItems); updateProgress(); }
+
+// ─── INTERACTIONS ────────────────────────────────────────────────────
+function setStatus(id, k) {
+  state.status[id] = state.status[id] === k ? undefined : k;   // click again to clear
+  save(); renderItem(id); updateProgress();
+}
+function setReason(id, v) { state.unkReason[id] = v || undefined; save(); }
+function toggleNote(id) { const el = document.getElementById('note-' + id); el.classList.toggle('open'); if (el.classList.contains('open')) el.focus(); }
+function saveNote(id) { state.notes[id] = document.getElementById('note-' + id).value; save(); }
+function toggleCat(cat) { document.getElementById('cat-' + cat + '-block').classList.toggle('collapsed'); }
+
+function counts(items) {
+  const c = { confirmed:0, not_present:0, unknown:0, answered:0 };
+  items.forEach(i => { const s = state.status[i.id]; if (s) { c[s]++; c.answered++; } });
+  return c;
+}
+function updateProgress() {
+  const all = ALL_ITEMS(), c = counts(all);
+  document.getElementById('s-done').textContent = c.answered + '/' + all.length;
+  document.getElementById('s-conf').textContent = c.confirmed;
+  document.getElementById('s-np').textContent = c.not_present;
+  document.getElementById('s-unk').textContent = c.unknown;
+  document.getElementById('prog').style.width = (c.answered / all.length * 100) + '%';
+  ['a','b','c'].forEach(cat => {
+    const cc = counts(ITEMS[cat]);
+    document.getElementById('prog-' + cat + '-fill').style.width = Math.round(cc.answered / ITEMS[cat].length * 100) + '%';
+    document.getElementById('prog-' + cat + '-pct').textContent = cc.answered + '/' + ITEMS[cat].length;
+  });
+}
+function resetAll() {
+  if (!confirm('Reset all statuses and notes? (The metric plan is kept.)')) return;
+  state = { status:{}, notes:{}, unkReason:{}, info:state.info };
+  save(); renderAll();
+}
+
+// ─── REPORT ─────────────────────────────────────────────────────────
+function row(cls, tag, html) { return `<div class="report-item-row"><span class="item-status ${cls}">${tag}</span><div>${html}</div></div>`; }
+function ev(id) {
+  const n = (state.notes[id] || '').trim();
+  return n ? `<br><em style="color:var(--text2)">${esc(n)}</em>` : `<br><em style="color:var(--red)">No evidence recorded</em>`;
+}
+function section(id, html) {
+  document.getElementById(id + '-section').style.display = html ? '' : 'none';
+  if (html) document.getElementById('report-' + id).innerHTML = html;
+}
+function showReport() {
+  const v = id => document.getElementById(id).value || 'Not specified';
+  document.getElementById('report-meta').innerHTML =
+    `<strong>System:</strong> ${esc(v('sys-name'))} &nbsp;·&nbsp; <strong>Auditor:</strong> ${esc(v('auditor'))} &nbsp;·&nbsp; <strong>Date:</strong> ${esc(v('audit-date'))}<br>
+     <strong>Context:</strong> ${esc(v('context'))} &nbsp;·&nbsp; <strong>AI task:</strong> ${esc(v('ai-task'))} &nbsp;·&nbsp; <strong>Scope:</strong> ${esc(v('scope'))}`;
+
+  const names = { a:'A — Process & human cognitive bias', b:'B — Data bias', c:'C — Engineering decision bias' };
+  let t = `<table class="status-table"><thead><tr><th>Category</th><th class="num">Confirmed</th><th class="num">Not present</th><th class="num">Unknown</th><th class="num">Unanswered</th></tr></thead><tbody>`;
+  ['a','b','c'].forEach(cat => { const c = counts(ITEMS[cat]);
+    t += `<tr><td>${names[cat]}</td><td class="num">${c.confirmed}</td><td class="num">${c.not_present}</td><td class="num">${c.unknown}</td><td class="num">${ITEMS[cat].length - c.answered}</td></tr>`; });
+  const all = ALL_ITEMS(), ca = counts(all), open = all.length - ca.answered;
+  t += `<tr><td><strong>Total</strong></td><td class="num"><strong>${ca.confirmed}</strong></td><td class="num"><strong>${ca.not_present}</strong></td><td class="num"><strong>${ca.unknown}</strong></td><td class="num"><strong>${open}</strong></td></tr></tbody></table>`;
+  document.getElementById('report-cats').innerHTML = t;
+
+  const vb = document.getElementById('report-verdict');
+  if (open) { vb.className = 'verdict-box v-amber'; vb.textContent = `${ca.answered}/${all.length} clauses answered. Answer the remaining ${open} before finalising the bias list.`; }
+  else { vb.className = 'verdict-box v-green'; vb.textContent = `All ${all.length} clauses answered: ${ca.confirmed} confirmed, ${ca.not_present} not present, ${ca.unknown} unknown. Continue with the ${ca.confirmed} confirmed clause(s) in the Metric plan.`; }
+
+  section('confirmed', all.filter(i => state.status[i.id]==='confirmed').map(i => row('s-miss','CONFIRMED',`<strong style="font-size:12px">${i.clause}</strong> — ${esc(BIAS_NAME(i))}${ev(i.id)}`)).join(''));
+  section('unknown', all.filter(i => state.status[i.id]==='unknown').map(i => row('s-unk','UNKNOWN',
+    `<strong style="font-size:12px">${i.clause}</strong> — ${esc(BIAS_NAME(i))}<br><span style="font-size:11px">Reason: ${state.unkReason[i.id] ? UNK_REASON[state.unkReason[i.id]] : '<span style="color:var(--red)">not given</span>'}</span>${ev(i.id)}`)).join(''));
+  section('np', all.filter(i => state.status[i.id]==='not_present').map(i => row('s-done','NOT PRESENT',`<strong style="font-size:12px">${i.clause}</strong> — ${esc(BIAS_NAME(i))}${ev(i.id)}`)).join(''));
+  section('open', all.filter(i => !state.status[i.id]).map(i => row('s-miss','OPEN',`<strong style="font-size:12px">${i.clause}</strong> — ${i.q}`)).join(''));
+
+  const ready = (id, label, why) => {
+    const s = state.status[id];
+    const tag = s==='not_present' ? ['s-done','OK'] : s==='confirmed' ? ['s-miss','CONFIRMED'] : s==='unknown' ? ['s-unk','UNKNOWN'] : ['s-miss','OPEN'];
+    return row(tag[0], tag[1], `<strong>${label}</strong> — ${why}`);
+  };
+  document.getElementById('report-readiness').innerHTML =
+    ready('b3','§6.3.4 Representative sampling','If confirmed or unknown, report n per subgroup and treat subgroup metrics as unstable.') +
+    ready('b2','§6.3.3 Labelling consistency','Affects every reference-based metric (TP/FN counts).') +
+    ready('b6','§6.3.7 Subgroup disaggregation','Core requirement for all five §7 metrics.');
+
+  const steps = [];
+  if (open) steps.push(`Answer the remaining ${open} clause(s).`);
+  const noEv = all.filter(i => state.status[i.id] && !(state.notes[i.id]||'').trim()).length;
+  if (noEv) steps.push(`Add evidence for ${noEv} answered clause(s).`);
+  const unkNo = all.filter(i => state.status[i.id]==='unknown' && !state.unkReason[i.id]).length;
+  if (unkNo) steps.push(`Give a reason for ${unkNo} Unknown clause(s) — separate “no information” from “no authority to answer”.`);
+  if (ca.confirmed) steps.push(`Open the Metric plan to decide which of the ${ca.confirmed} confirmed bias(es) are measurable and with which metric.`);
+  if (!steps.length) steps.push('No open actions.');
+  document.getElementById('report-nextsteps').innerHTML = steps.map((s,i) => row('s-info', String(i+1), s)).join('');
+
+  document.getElementById('modal').style.display = 'flex';
+}
+function closeReport() { document.getElementById('modal').style.display = 'none'; }
+
+function exportCSV() {
+  const date = document.getElementById('audit-date').value || new Date().toISOString().slice(0,10);
+  const lines = [
+    'ISO 24027 Bias Audit — Stage B export',
+    'System,' + csvCell(document.getElementById('sys-name').value),
+    'Auditor,' + csvCell(document.getElementById('auditor').value),
+    'Date,' + date, '',
+    'Clause,Category,Bias,Question,Bias status,Unknown reason,Evidence/Note',
+    ...ALL_ITEMS().map(i => [i.clause, i.id[0].toUpperCase(), csvCell(BIAS_NAME(i)), csvCell(i.q),
+      state.status[i.id] ? STATUS[state.status[i.id]] : 'Unanswered',
+      state.unkReason[i.id] ? UNK_REASON[state.unkReason[i.id]] : '',
+      csvCell(state.notes[i.id] || '')].join(','))
+  ];
+  downloadFile('iso24027_checklist_' + date + '.csv', '﻿' + lines.join('\n'), 'text/csv');
+}
+function exportJSON() {
+  const date = document.getElementById('audit-date').value || new Date().toISOString().slice(0,10);
+  downloadFile('iso24027_checklist_' + date + '.json',
+    JSON.stringify({ source:'iso24027-checklist', version:2, exported:new Date().toISOString(), ...state }, null, 2), 'application/json');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────
+load(); restoreInfo(); renderAll();
+</script>
+</body>
+</html>

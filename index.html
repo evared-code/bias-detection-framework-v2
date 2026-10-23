@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISO 24027 Bias Detection Framework — HarmonicAI</title>
+<style>
+  :root {
+    --bg:#fafaf8;--surface:#fff;--surface2:#f4f3ef;--border:#e2e0d8;
+    --text:#1a1a18;--text2:#5a5a54;--text3:#8a8a82;
+    --gold:#c9a227;--gold-deep:#8a6d1b;--gold-dark:#6b5415;--gold-bright:#f2d16b;--gold-light:#fbf5e4;
+    --purple:#3c3489;--purple-light:#eeedfe;--purple-mid:#534ab7;
+    --teal:#0f6e56;--teal-light:#e1f5ee;
+    --coral:#712b13;--coral-light:#faece7;
+    --blue:#185fa5;--blue-light:#e6f1fb;
+    --red:#791f1f;--red-light:#fcebeb;
+    --amber:#633806;--amber-light:#faeeda;
+    --green:#27500a;--green-light:#eaf3de;
+    --r:12px;--rs:7px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.7}
+  a{color:inherit;text-decoration:none}
+
+  .nav{background:var(--gold-dark);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .nav-brand{display:flex;align-items:center;gap:10px}
+  .nav-logo{width:30px;height:30px;background:var(--gold-bright);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--gold-dark);flex-shrink:0}
+  .nav-title{font-size:14px;font-weight:600;color:#fff}
+  .nav-sub{font-size:11px;color:rgba(255,255,255,0.55)}
+  .nav-links{display:flex;gap:8px;flex-wrap:wrap}
+  .nl{padding:7px 16px;border-radius:20px;font-size:13px;font-weight:500;transition:all .15s}
+  .nl-o{border:1.5px solid rgba(255,255,255,0.35);color:rgba(255,255,255,0.85)}
+  .nl-o:hover{background:rgba(255,255,255,0.1)}
+  .nl-s{background:var(--gold-bright);color:var(--gold-dark)}
+  .nl-s:hover{opacity:.9}
+
+  .hero{background:var(--gold-deep);padding:52px 24px 68px;text-align:center;position:relative}
+  .hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(transparent,var(--bg))}
+  .hero-badge{display:inline-block;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);font-size:11px;font-weight:600;padding:4px 14px;border-radius:20px;margin-bottom:16px;letter-spacing:.06em}
+  .hero h1{font-size:30px;font-weight:700;color:#fff;line-height:1.25;margin-bottom:12px}
+  .hero h1 span{color:var(--gold-bright)}
+  .hero p{font-size:14px;color:rgba(255,255,255,0.7);max-width:500px;margin:0 auto 28px}
+  .hero-tools{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+  .tool-card{background:var(--surface);border-radius:var(--r);padding:18px 18px;width:200px;text-align:left;transition:transform .15s,box-shadow .15s;box-shadow:0 2px 14px rgba(0,0,0,0.14);border-top:3px solid var(--gold)}
+  .tool-card:hover{transform:translateY(-3px);box-shadow:0 6px 22px rgba(0,0,0,0.18)}
+  .tool-step{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--gold-dark);text-transform:uppercase;margin-bottom:6px}
+  .tool-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px}
+  .ic-a{background:var(--purple-light)} .ic-b{background:var(--teal-light)} .ic-c{background:var(--gold-light)} .ic-d{background:var(--coral-light)}
+  .tool-card h3{font-size:14px;font-weight:600;margin-bottom:4px;color:var(--text)}
+  .tool-card p{font-size:12px;color:var(--text2);line-height:1.4}
+  .tool-arrow{font-size:12px;color:var(--text3);margin-top:8px}
+
+  .main{max-width:800px;margin:0 auto;padding:40px 22px 80px}
+  .sec{margin-bottom:48px}
+  .sec-lbl{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--gold-deep);text-transform:uppercase;margin-bottom:8px}
+  .sec h2{font-size:21px;font-weight:700;margin-bottom:14px}
+  .sec p{color:var(--text2);margin-bottom:12px}
+  .sec p:last-child{margin-bottom:0}
+
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
+  .sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
+  .sn{font-size:28px;font-weight:700;line-height:1;margin-bottom:4px}
+  .sl{font-size:12px;color:var(--text2);line-height:1.4}
+  .ss{font-size:10px;color:var(--text3);margin-top:4px}
+
+  .quote{border-left:3px solid var(--gold);padding:12px 18px;margin:20px 0;background:var(--gold-light);border-radius:0 var(--rs) var(--rs) 0}
+  .quote p{color:var(--gold-dark);font-style:italic;font-size:13px;margin:0}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+  .ap{border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
+  .ap.struck{opacity:.42}
+  .ap h4{font-size:13px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .ap p{font-size:12px;color:var(--text2);margin:0}
+  .badge-no{font-size:10px;font-weight:600;padding:1px 7px;border-radius:4px;background:var(--red-light);color:var(--red)}
+  .badge-yes{font-size:10px;font-weight:600;padding:1px 7px;border-radius:4px;background:var(--green-light);color:var(--green)}
+
+  .flow{display:flex;margin:22px 0;align-items:stretch}
+  .fs{flex:1;background:var(--surface);border:1px solid var(--border);border-left:none;padding:12px 10px;text-align:center;position:relative;transition:background .15s}
+  a.fs:hover{background:var(--gold-light)}
+  .fs:first-child{border-left:1px solid var(--border);border-radius:var(--r) 0 0 var(--r)}
+  .fs:last-child{border-radius:0 var(--r) var(--r) 0}
+  .fs::after{content:'→';position:absolute;right:-9px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px;z-index:1;background:var(--bg);padding:1px}
+  .fs:last-child::after{display:none}
+  .fn{font-size:10px;font-weight:700;color:var(--gold-dark);margin-bottom:3px}
+  .ft{font-size:12px;font-weight:600;color:var(--text)}
+  .fb{font-size:10px;color:var(--text3);margin-top:2px}
+
+  .cat-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+  .cat-row:last-child{border-bottom:none}
+  .cpill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px}
+  .pa{background:var(--purple-light);color:var(--purple)}
+  .pb{background:var(--teal-light);color:var(--teal)}
+  .pc{background:var(--coral-light);color:var(--coral)}
+  .cd{font-size:12px;color:var(--text2)}
+  .cc{font-size:12px;font-weight:600;color:var(--text3);white-space:nowrap}
+
+  .ml{display:grid;gap:8px;margin:14px 0}
+  .mi{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs)}
+  .mc{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:var(--blue-light);color:var(--blue);white-space:nowrap;flex-shrink:0;margin-top:2px}
+  .mb{flex:1}
+  .mn{font-size:13px;font-weight:600}
+  .md{font-size:12px;color:var(--text2);margin-top:2px}
+
+  .proxy-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;margin:14px 0}
+  .proxy-box h4{font-size:14px;font-weight:600;margin-bottom:8px}
+  .pf{background:var(--surface2);border-radius:var(--rs);padding:8px 12px;font-family:monospace;font-size:12px;color:var(--text2);margin:8px 0}
+  .pl{background:var(--red-light);border-left:3px solid var(--red);border-radius:var(--rs);padding:8px 12px;font-size:12px;color:var(--red);margin-top:8px}
+
+  .file-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+  .fc{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;display:flex;gap:10px;align-items:flex-start;transition:background .15s}
+  .fc:hover{background:var(--surface2)}
+  .fi{font-size:20px;flex-shrink:0}
+  .fname{font-size:12px;font-weight:600;font-family:monospace}
+  .fdesc{font-size:11px;color:var(--text2);margin-top:2px}
+
+  .ref-list{list-style:none;padding:0}
+  .ref-list li{font-size:12px;color:var(--text2);padding:7px 0;border-bottom:1px solid var(--border);line-height:1.5}
+  .ref-list li:last-child{border-bottom:none}
+  .rn{font-weight:700;color:var(--text);margin-right:6px}
+
+  hr{border:none;border-top:1px solid var(--border);margin:40px 0}
+  code{font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:3px}
+
+  @media(max-width:620px){
+    .hero h1{font-size:22px}
+    .hero-tools{flex-direction:column;align-items:center}
+    .tool-card{width:100%;max-width:300px}
+    .stat-row{grid-template-columns:1fr}
+    .two-col{grid-template-columns:1fr}
+    .flow{flex-direction:column;gap:6px}
+    .fs{border:1px solid var(--border) !important;border-radius:var(--rs) !important}
+    .fs::after{display:none}
+    .file-grid{grid-template-columns:1fr}
+    .nav{padding:12px 16px}
+    .nav-links{display:none}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">
+    <div class="nav-logo">H</div>
+    <div>
+      <div class="nav-title">HarmonicAI Bias Detection Framework</div>
+      <div class="nav-sub">ISO/IEC 24027:2021 · CMU Software Engineering · 2026</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a class="nl nl-s" href="checklist.html">1 · Checklist</a>
+    <a class="nl nl-o" href="metric-plan.html">2 · Metric plan</a>
+    <a class="nl nl-o" href="magnitude.html">3 · Magnitude</a>
+    <a class="nl nl-o" href="verdict.html">4 · Verdict</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">HarmonicAI · Use Case 3 · Thailand</div>
+  <h1>Bias was never written<br>as a <span>requirement</span></h1>
+  <p>Not because anyone decided against it — but because nobody thought to include it. This toolkit helps development teams detect it systematically.</p>
+  <div class="hero-tools">
+    <a class="tool-card" href="checklist.html">
+      <div class="tool-step">Step 1 · Stage B</div>
+      <div class="tool-icon ic-a">&#9745;</div>
+      <h3>Bias Checklist</h3>
+      <p>Confirm each of the 23 ISO 24027 §6.2–§6.4 clauses: confirmed, not present or unknown — with evidence.</p>
+      <div class="tool-arrow">Open checklist →</div>
+    </a>
+    <a class="tool-card" href="metric-plan.html">
+      <div class="tool-step">Step 2 · Stages C–E</div>
+      <div class="tool-icon ic-c">&#9881;</div>
+      <h3>Metric Plan</h3>
+      <p>Decide which confirmed biases are measurable, choose the §7 metric and subgroup, and lock the plan before results.</p>
+      <div class="tool-arrow">Open metric plan →</div>
+    </a>
+    <a class="tool-card" href="magnitude.html">
+      <div class="tool-step">Step 3 · Stage F</div>
+      <div class="tool-icon ic-b">&#128202;</div>
+      <h3>Magnitude</h3>
+      <p>Upload CSV · gap, ratio, n and 95% CI per subgroup. Measurement only — no verdict.</p>
+      <div class="tool-arrow">Open magnitude →</div>
+    </a>
+    <a class="tool-card" href="verdict.html">
+      <div class="tool-step">Step 4 · Stage G</div>
+      <div class="tool-icon ic-d">&#9878;</div>
+      <h3>Verdict</h3>
+      <p>The domain expert sets tolerances first, then judges whether each measured gap is unwanted in context.</p>
+      <div class="tool-arrow">Open verdict →</div>
+    </a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="sec">
+    <div class="sec-lbl">The problem</div>
+    <h2>Fairness is the most under-addressed dimension in AI development</h2>
+    <p>Multiple lines of evidence converge on the same finding: fairness is consistently deprioritised across the AI development lifecycle — by practitioners, by researchers, and by the systems they build.</p>
+    <div class="stat-row">
+      <div class="sc"><div class="sn" style="color:var(--red)">22%</div><div class="sl">of API practitioners address fairness in non-functional requirements</div><div class="ss">Singjai, A. (2026) — Information 17(3), 304</div></div>
+      <div class="sc"><div class="sn" style="color:var(--amber)">40%</div><div class="sl">of XAI research addresses safety &amp; risk mitigation — lowest of any dimension</div><div class="ss">Singjai &amp; Sureephong (2026) — ICCAE 2026</div></div>
+      <div class="sc"><div class="sn" style="color:var(--amber)">69%</div><div class="sl">average bias detection coverage in XAI literature vs 100% among ethics &amp; governance sources</div><div class="ss">Singjai &amp; Sureephong (2026) — ICCAE 2026</div></div>
+    </div>
+    <div class="quote"><p>"Closing the fairness gap requires shared infrastructure — standardised metrics, open tooling, and domain events for bias detection — rather than guidance targeted at only one side of the API contract." [4]</p></div>
+    <p>At the user level, developers assume users want personalisation and adaptive features — but students prioritise basic feedback quality (75.4%) over personalisation (35.1%). That 40.3 percentage-point difference reveals how deeply developer assumptions diverge from actual user priorities when fairness is never made explicit. [1][2]</p>
+  </div>
+
+  <hr>
+
+  <div class="sec">
+    <div class="sec-lbl">The research question</div>
+    <h2>Given we know bias exists and practitioners ignore it — how do you actually detect it systematically?</h2>
+    <p>Two approaches exist. Only one is feasible without full clinical data access:</p>
+    <div class="two-col">
+      <div class="ap struck">
+        <h4><span class="badge-no">Not used</span> Technical detection</h4>
+        <p>Automated metric computation applied to a deployed model. Requires independently validated clinical labels and subgroup data. Ground truth is not available in the CareMove/Gymbot dataset.</p>
+      </div>
+      <div class="ap">
+        <h4><span class="badge-yes">This toolkit</span> Process/audit framework</h4>
+        <p>A structured checklist guiding teams through ISO 24027 clause-by-clause. Works at requirements and design stage. No clinical labels needed for the checklist. Proxy metrics extend this using available Gymbot data.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="sec">
+    <div class="sec-lbl">The framework</div>
+    <h2>ISO/IEC 24027:2021 — three clause groups → three checklists → five metrics</h2>
+    <p>ISO/IEC TR 24027:2021 defines bias and fairness for AI systems across three domains. This toolkit operationalises those clauses into a four-step auditable workflow that keeps measurement (magnitude) separate from judgement (verdict).</p>
+    <div class="flow">
+      <a class="fs" href="checklist.html"><div class="fn">1 · B</div><div class="ft">Checklist</div><div class="fb">Confirm the bias list</div></a>
+      <a class="fs" href="metric-plan.html"><div class="fn">2 · C–E</div><div class="ft">Metric plan</div><div class="fb">Measurable? → metric · lock</div></a>
+      <a class="fs" href="magnitude.html"><div class="fn">3 · F</div><div class="ft">Magnitude</div><div class="fb">Size of bias · n · CI</div></a>
+      <a class="fs" href="verdict.html"><div class="fn">4 · G</div><div class="ft">Verdict</div><div class="fb">Unwanted in context?</div></a>
+    </div>
+    <div style="margin:22px 0;text-align:center">
+      <img src="framework.png" alt="The ISO 24027 Bias Detection Framework — three categories (Human Cognitive Biases, Data Biases, Engineering Decision Biases) converging into 5 Fairness Metrics, with 23 checkpoints across 3 systemic categories" style="max-width:100%;border-radius:var(--r);border:1px solid var(--border)">
+    </div>
+    <p style="font-size:11px;color:var(--text3)">§6.3.10 and §7.7 excluded — content paywalled. §5.2–5.3 used as conceptual framing only.</p>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-top:14px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Checklist categories</div>
+      <div class="cat-row"><span class="cpill pa">A</span><span class="cd">Process &amp; human cognitive bias — automation bias, group attribution, implicit bias, confirmation bias, requirements bias + 4 more</span><span class="cc">9 items</span></div>
+      <div class="cat-row"><span class="cpill pb">B</span><span class="cd">Data bias — statistical bias, non-representative sampling, missing features, Simpson's paradox, data aggregation + 3 more</span><span class="cc">8 items</span></div>
+      <div class="cat-row"><span class="cpill pc">C</span><span class="cd">Engineering decision bias — feature engineering, algorithm selection, hyperparameter tuning, proxy discrimination, model bias, model interaction</span><span class="cc">6 items</span></div>
+    </div>
+    <div class="ml" style="margin-top:18px">
+      <div style="font-size:13px;font-weight:600">Fairness metrics (§7)</div>
+      <div class="mi"><span class="mc">§7.2</span><div class="mb"><div class="mn">Confusion matrix per group</div><div class="md">TP/FP/FN/TN breakdown for each subgroup — foundation for all other metrics</div></div></div>
+      <div class="mi"><span class="mc">§7.3</span><div class="mb"><div class="mn">Equalized odds</div><div class="md">TPR and FPR must both be equal across groups</div></div></div>
+      <div class="mi"><span class="mc">§7.4</span><div class="mb"><div class="mn">Equality of opportunity</div><div class="md">High-risk users identified at equal rates regardless of group</div></div></div>
+      <div class="mi"><span class="mc">§7.5</span><div class="mb"><div class="mn">Demographic parity</div><div class="md">Positive outcome rate independent of group — fully computable without ground truth</div></div></div>
+      <div class="mi"><span class="mc">§7.6</span><div class="mb"><div class="mn">Predictive equality</div><div class="md">Equal false positive rate — no group disproportionately over-flagged</div></div></div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="sec">
+    <div class="sec-lbl">Data context</div>
+    <h2>Why a proxy approach — and what it means for results</h2>
+    <p>The CareMove/Gymbot dataset records AI scores and user exercise behaviour but contains no PT-assessed clinical risk labels. Without ground truth, four of the five metrics cannot be computed directly. Only §7.5 demographic parity is fully computable from raw data.</p>
+    <p>To provide directional findings for all five metrics, this toolkit uses a researcher-constructed proxy label derived from TILDA (Irish Longitudinal Study on Ageing) fall prediction findings:</p>
+    <div class="proxy-box">
+      <h4>Proxy ground truth rule</h4>
+      <div class="pf">proxy_risk = 1 &nbsp;IF&nbsp; age &ge; AGE_THRESHOLD &nbsp;AND&nbsp; bodyRatio &lt; BODY_THRESHOLD<br>model_flag = 1 &nbsp;IF&nbsp; gymbot_score &lt; SCORE_THRESHOLD</div>
+      <p style="font-size:12px;color:var(--text2)">Thresholds are set and locked in the Metric plan. Default: age &ge; 65 (WHO elderly), bodyRatio &lt; 0.6 (below 60% movement quality, analogous to below-threshold grip strength in TILDA), gymbot_score &lt; 60.</p>
+      <div class="pl">Limitation: This proxy has not been validated against PT clinical assessment. All findings are exploratory and directional only. Clinical validation is required before any deployment decision.</div>
+    </div>
+    <p>Required future work: collect PT-assessed risk labels for a minimum of 30 sessions per subgroup and recompute all five metrics against validated ground truth.</p>
+  </div>
+
+  <hr>
+
+  <div class="sec">
+    <div class="sec-lbl">Repository files</div>
+    <h2>GitHub file structure</h2>
+    <p>All files below should be in the root of your GitHub repository. Deploy via GitHub Pages (Settings → Pages → main branch / root). Your own CareMove data should follow the same 6-column format as <code>example_data.csv</code>. Data are processed in the browser only; nothing is uploaded.</p>
+    <div class="file-grid">
+      <a class="fc" href="checklist.html"><div class="fi">&#9745;</div><div><div class="fname">checklist.html</div><div class="fdesc">Step 1 · Confirm the 23 ISO 24027 §6 clauses (confirmed / not present / unknown) with evidence.</div></div></a>
+      <a class="fc" href="metric-plan.html"><div class="fi">&#9881;</div><div><div class="fname">metric-plan.html</div><div class="fdesc">Step 2 · Context, measurability, §7 metric, subgroup and rules — locked before results.</div></div></a>
+      <a class="fc" href="magnitude.html"><div class="fi">&#128202;</div><div><div class="fname">magnitude.html</div><div class="fdesc">Step 3 · Upload CSV → gap, ratio, n and bootstrap 95% CI per subgroup.</div></div></a>
+      <a class="fc" href="verdict.html"><div class="fi">&#9878;</div><div><div class="fname">verdict.html</div><div class="fdesc">Step 4 · Tolerances first, then the expert's verdict and the outcome grid.</div></div></a>
+      <a class="fc" href="bias-data.js"><div class="fi">&#128221;</div><div><div class="fname">bias-data.js · style.css</div><div class="fdesc">Shared clause list, metric definitions and styling used by all four steps.</div></div></a>
+      <a class="fc" href="example_data.csv"><div class="fi">&#128196;</div><div><div class="fname">example_data.csv</div><div class="fdesc">60-participant sample (participant_id · age · sex · site · bodyRatio · gymbot_score).</div></div></a>
+      <a class="fc" href="synthetic_test_data.csv"><div class="fi">&#129514;</div><div><div class="fname">synthetic_test_data.csv</div><div class="fdesc">240-row synthetic test set with a known sex bias, for checking the tool.</div></div></a>
+      <a class="fc" href="index.html"><div class="fi">&#127968;</div><div><div class="fname">index.html</div><div class="fdesc">This background page — framework overview and navigation hub.</div></div></a>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="sec">
+    <div class="sec-lbl">References</div>
+    <h2>Supporting publications</h2>
+    <ul class="ref-list">
+      <li><span class="rn">[1]</span>Holmes, W., Bialik, M., &amp; Fadel, C. (2019). Artificial intelligence in education: Promises and implications for teaching and learning. Center for Curriculum Redesign.</li>
+      <li><span class="rn">[2]</span>Suteeca, K., &amp; Singjai, A. (2025). Bias Assessment and Fairness Requirements Prioritization Framework for Educational AI Development Teams. <em>2025 6th TIMES-iCON</em> (pp. 1–5). IEEE.</li>
+      <li><span class="rn">[3]</span>Singjai, A., &amp; Sureephong, P. (2026). Understanding XAI Research Landscape Through Analysis of Knowledge Gaps and Stakeholder Perspectives. <em>Proceedings of ICCAE 2026</em>, Sydney, Australia.</li>
+      <li><span class="rn">[4]</span>Singjai, A. (2026). Deriving Empirically Grounded NFR Specifications from Practitioner Discourse. <em>Information, 17</em>(3), 304. <a href="https://doi.org/10.3390/info17030304" style="color:var(--blue)">doi:10.3390/info17030304</a></li>
+      <li><span class="rn">[5]</span>ISO/IEC TR 24027:2021. <em>Artificial intelligence — Bias in AI systems and AI aided decision making</em>. First edition, November 2021.</li>
+    </ul>
+  </div>
+
+  <div style="text-align:center;padding:20px 0;font-size:11px;color:var(--text3)">
+    Singjai, A. (2026). ISO 24027 Bias Detection Framework · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117
+  </div>
+
+</div>
+</body>
+</html>
