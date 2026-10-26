@@ -2,7 +2,7 @@
 
 A browser-based toolkit that applies ISO/IEC TR 24027:2021 to detect bias in an AI-aided decision-making system and to keep **measurement (magnitude)** separate from **judgement (verdict)**.
 
-Live site: https://evared-code.github.io/bias-detection-framework/
+Live site: https://evared-code.github.io/bias-detection-framework-v2/
 
 ## Workflow
 
