@@ -230,7 +230,7 @@ function cardHtml(x) {
     <div class="res-sub" style="font-size:11px;color:var(--text3)">From ${r.from.join(', ')}</div>`;
   if (!c || c.status === 'indeterminate') {
     return h + `<div class="vnums"><span class="st st-ind">INDETERMINATE</span> ${esc((c && c.reason) || r.reason || '')}</div>
-      <div class="hint">No magnitude, so no verdict. This becomes an input for Specify (not yet in scope): what would the interface or data need to expose?</div></div>`;
+      <div class="hint">No magnitude, so no verdict. Report it as a finding: record what data or interface information would be needed to measure it.</div></div>`;
   }
   const tol = x.tol.value;
   const hasTol = tol !== null && tol !== undefined && !isNaN(tol);
@@ -298,7 +298,7 @@ function renderOutcome() {
       <div class="gcell g-fair"><h4>No concern found</h4>${list('none')}</div>
       <div class="gcell g-unfair"><h4>Hidden unfairness</h4><div style="font-size:11px;opacity:.8;margin-bottom:4px">ignores different needs, or wrong metric / subgroup</div>${list('hidden')}</div>
       <div></div>
-      <div class="gcell g-ind"><h4>Indeterminate — input for Specify (not yet in scope)</h4>${list('indeterminate')}</div>
+      <div class="gcell g-ind"><h4>Indeterminate — cannot be measured with the available data</h4>${list('indeterminate')}</div>
     </div>
     ${verdictStatus(xs, by)}`;
 

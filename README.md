@@ -2,7 +2,7 @@
 
 A browser-based toolkit that applies ISO/IEC TR 24027:2021 to detect bias in an AI-aided decision-making system and to keep **measurement (magnitude)** separate from **judgement (verdict)**.
 
-Live site: https://evared-code.github.io/bias-detection-framework-v2/
+Live site: https://evared-code.github.io/bias-detection-framework/
 
 ## Workflow
 
@@ -13,7 +13,7 @@ Live site: https://evared-code.github.io/bias-detection-framework-v2/
 | 3 | `magnitude.html` | F — compute magnitude | Researcher | Per subgroup and metric: n, rates, gap, ratio, bootstrap 95% CI, threshold sensitivity. Status: significant disparity / not distinguishable from 0 / indeterminate. No verdict |
 | 4 | `verdict.html` | G — verdict | Domain expert | Tolerances set and locked **before** results are shown; then unwanted / justified, or hidden-unfairness checks; outcome grid (biased × fair) plus indeterminate |
 
-Indeterminate results (magnitude cannot be measured) are listed as input for the Specify step, which is not yet in scope.
+Indeterminate results (magnitude cannot be measured) are reported as findings in their own right, with the data or interface information that would be needed to measure them.
 
 ## Files
 
@@ -51,7 +51,7 @@ P001,68,F,D01,0.52,55
 ```
 
 - Output: a raw score with a decision rule (default `gymbot_score < 60` = flagged), or a 0/1 flag column.
-- Reference: none, a proxy rule (default `age >= 65 AND bodyRatio < 0.6`), or a validated label column.
+- Reference: none, a proxy rule (default `age >= 65 AND bodyRatio < 0.6`), or a validated label column. The proxy is a placeholder: when validated labels exist, switch the reference to the label column and recompute.
 - Columns used to build the reference cannot be used as subgroups.
 
 ## Data and privacy
