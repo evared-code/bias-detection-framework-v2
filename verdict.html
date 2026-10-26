@@ -254,13 +254,14 @@ function cardHtml(x) {
       .map(o => `${o.clause} ${o.name}: ${o.comparisons.length ? o.comparisons.map(k => `${k.group} ${k.status === 'significant' ? 'significant' : k.status === 'indeterminate' ? 'indeterminate' : 'not distinguishable'}`).join(', ') : 'indeterminate'}`);
     h += `<div class="hint">No significant disparity on this metric. Before concluding “no concern”, check for hidden unfairness.${c.lowN ? ' Small n: “not distinguishable” may only mean the sample is too small to see a gap.' : ''}</div>
       <div class="checks">
+        <label><input type="checkbox" ${ch.needs?'checked':''} onchange="check('${x.key}','needs',this.checked)"> Different needs considered — would equal treatment be unfair here because groups need different outcomes? (e.g. paediatric dosing; one score threshold for all ages)</label>
         <label><input type="checkbox" ${ch.other?'checked':''} onchange="check('${x.key}','other',this.checked)"> Other metrics for <strong>${esc(r.subgroup)}</strong> reviewed${others.length ? ` — ${esc(others.join(' · '))}` : ' — no other metric computed for this subgroup'}</label>
         <label><input type="checkbox" ${ch.inter?'checked':''} onchange="check('${x.key}','inter',this.checked)"> Intersectional groups considered (e.g. sex × site)</label>
         <label><input type="checkbox" ${ch.proc?'checked':''} onchange="check('${x.key}','proc',this.checked)"> Procedural fairness considered (explanation, override, appeal)</label>
       </div>
       <div class="ctrl-row"><span class="ctrl-lbl">Unfair on other checks?</span><div class="seg">
         <button type="button" class="${d.hidden==='yes'?'on-confirmed':''}" onclick="decide('${x.key}','hidden','yes')">Yes — hidden unfairness</button>
-        <button type="button" class="${d.hidden==='no'?'on-not_present':''}" ${ch.other && ch.inter && ch.proc ? '' : 'disabled title="Tick all three checks first"'} onclick="decide('${x.key}','hidden','no')">No — no concern</button></div></div>
+        <button type="button" class="${d.hidden==='no'?'on-not_present':''}" ${ch.needs && ch.other && ch.inter && ch.proc ? '' : 'disabled title="Tick all four checks first"'} onclick="decide('${x.key}','hidden','no')">No — no concern</button></div></div>
       <textarea class="mini-textarea" style="margin-top:6px" placeholder="Note (what you found in the checks)" oninput="note('${x.key}','note',this.value)">${esc(d.note || '')}</textarea>`;
   }
   return h + `</div>`;
@@ -295,7 +296,7 @@ function renderOutcome() {
       <div class="gcell g-unfair"><h4>Unwanted bias</h4>${list('unwanted')}</div>
       <div class="gr">Unbiased<span>not distinguishable from 0</span></div>
       <div class="gcell g-fair"><h4>No concern found</h4>${list('none')}</div>
-      <div class="gcell g-unfair"><h4>Hidden unfairness</h4>${list('hidden')}</div>
+      <div class="gcell g-unfair"><h4>Hidden unfairness</h4><div style="font-size:11px;opacity:.8;margin-bottom:4px">ignores different needs, or wrong metric / subgroup</div>${list('hidden')}</div>
       <div></div>
       <div class="gcell g-ind"><h4>Indeterminate — input for Specify (not yet in scope)</h4>${list('indeterminate')}</div>
     </div>
