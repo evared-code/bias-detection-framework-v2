@@ -10,7 +10,7 @@ The toolkit is case-agnostic. The sample files (`example_data.csv`, `synthetic_t
 
 | Step | Page | Stage | Who | Output |
 |---|---|---|---|---|
-| A | — | Interpret standards (hybrid coding → checklist) | Researcher | Checklist items, each tagged with its source clause |
+| A | `standards.html` | Build the checklist (hybrid deductive–inductive coding) | Researcher + second coder | Match / refine / new / exclude per text unit of another standard; Cohen's κ; crosswalk CSV; built checklist applied to steps 1–4 |
 | 1 | `checklist.html` | B — confirm the bias list | Development team (API provider and/or consumer — whoever has the authority to know) | Status of each item: confirmed / not present / unknown, with evidence |
 | 2 | `metric-plan.html` | C–E — measurable? → metric → customise | Researcher | Context, data description, §7 metric and subgroup per confirmed bias, decision and reference rules — **locked before results** |
 | 3 | `magnitude.html` | F — compute magnitude | Researcher | Per subgroup and metric: n, rates, gap, ratio, bootstrap 95% CI, threshold sensitivity. Status: significant disparity / not distinguishable from 0 / indeterminate. No verdict |
@@ -23,6 +23,7 @@ Indeterminate results (magnitude cannot be measured) are reported as findings in
 | File | Purpose |
 |---|---|
 | `index.html` | Overview and navigation |
+| `standards.html` | Step A — checklist builder |
 | `checklist.html` | Step 1 |
 | `metric-plan.html` | Step 2 |
 | `magnitude.html` | Step 3 |
@@ -82,7 +83,7 @@ checklist JSON → Metric plan → plan JSON → Magnitude and Verdict → magni
 - Small groups (n below the plan's minimum) are flagged. With small n, or rates at exactly 0 or 1, bootstrap intervals are unreliable and “not distinguishable from 0” may only reflect limited data.
 - Proxy-based results are exploratory and directional only until validated against clinical (PT-assessed) labels.
 - The Magnitude page lists the **minimum case inputs** (output, raw score, groups, reference, reference positives, n, context, verdict owner) and what each missing input does to the results.
-- To add checklist items from TS 12791 or 5259-2, add them to `ITEMS` in `bias-data.js` with a `doc` field (e.g. `doc:'TS 12791'`); the source tag and exports pick it up.
+- New checklist items come from `standards.html` (step A). **Copyright:** never paste text from an ISO/IEC standard — record the clause number and a short summary in your own words. Summaries stay in the browser and appear only in the private coding file; the crosswalk CSV and the publishable checklist JSON contain clause references and the coders' own questions only. Do not commit private coding files to a public repository.
 - ISO/IEC TR 24027 is a Technical Report; this toolkit applies it and does not claim compliance.
 
 ## Citation

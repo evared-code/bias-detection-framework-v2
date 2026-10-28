@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build Checklist — Standards-Based Bias &amp; Fairness Toolkit</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .unit { border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-top:10px; background:var(--surface); }
+  .unit-head { display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
+  .unit-ref { font-size:12px; font-weight:600; color:var(--gold-dark); }
+  .unit-sum { font-size:13px; margin-top:4px; }
+  .unit-del { margin-left:auto; font-size:11px; color:var(--text3); background:none; border:none; cursor:pointer; }
+  .code-on-match { background:var(--green-light) !important; color:var(--green) !important; }
+  .code-on-refine { background:var(--amber-light) !important; color:var(--amber) !important; }
+  .code-on-new { background:var(--gold-light) !important; color:var(--gold-dark) !important; }
+  .code-on-exclude { background:var(--surface2) !important; color:var(--text2) !important; }
+  .notice { background:var(--red-light); color:var(--red); border-left:3px solid var(--red); border-radius:0 var(--radius) var(--radius) 0; padding:10px 14px; font-size:12px; margin-bottom:14px; }
+  .kappa { font-size:28px; font-weight:700; color:var(--gold-deep); }
+  .cb-list { max-height:260px; overflow:auto; border:1px solid var(--border); border-radius:var(--radius); padding:6px 10px; font-size:12px; }
+  .cb-list div { padding:3px 0; border-bottom:1px solid var(--border); }
+  .cb-list div:last-child { border-bottom:none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-badges">
+        <span class="badge badge-iso">ISO/IEC TR 24027 §6 + other standards</span>
+        <span class="badge badge-proxy">Stage A · Build checklist</span>
+      </div>
+      <h1>A · Build the checklist by hybrid coding</h1>
+      <p>Deductive: TR 24027 §6 as the initial codebook · Inductive: new items from other standards · Two coders · Cohen's κ</p>
+    </div>
+    <div class="header-actions">
+      <a class="btn btn-sm btn-primary" href="checklist.html" style="text-decoration:none">Next: checklist →</a>
+    </div>
+  </div>
+  <div class="nav">
+    <a href="index.html">← Overview</a>
+    <a href="standards.html" class="current">A · Build checklist</a>
+    <a href="checklist.html">1 · Checklist</a>
+    <a href="metric-plan.html">2 · Metric plan</a>
+    <a href="magnitude.html">3 · Magnitude</a>
+    <a href="verdict.html">4 · Verdict</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="notice">
+    <strong>Copyright.</strong> ISO/IEC documents are copyrighted. Do <strong>not</strong> paste text from a standard. For each unit, record only the clause number and a short summary in your own words. Summaries stay in this browser and appear only in the <em>private</em> coding file; the checklist and crosswalk exports contain clause numbers and your own questions only.
+  </div>
+
+  <div class="howto">
+    <strong>Method (hybrid deductive–inductive coding, Fereday &amp; Muir-Cochrane 2006).</strong>
+    The current checklist is the codebook. For each text unit of another standard, choose
+    <strong>Match</strong> (an existing item already covers it), <strong>Refine</strong> (it clarifies an existing item — write the improved question),
+    <strong>New</strong> (a bias source not in the codebook — write a new question) or <strong>Exclude</strong> (it fails an inclusion criterion).
+    Keep a unit only if it describes a source or condition of bias, is observable in the system or its data, is in scope for classification or regression decision systems, and is not a mitigation action.
+    A second coder codes the same units independently; the page reports Cohen's κ and the disagreements to resolve.
+  </div>
+
+  <!-- CODER + DOCUMENTS -->
+  <div class="panel">
+    <h2><span class="stage">1</span>Coder and documents</h2>
+    <div class="form-grid">
+      <div class="form-field"><label>Coder name</label><input type="text" id="coder" placeholder="e.g. coder 1" onchange="setCoder(this.value)"></div>
+      <div class="form-field" style="grid-column: span 2"><label>Add a document to code</label>
+        <div style="display:flex;gap:6px"><input type="text" id="new-doc" placeholder="e.g. TS 12791 or 5259-2" style="flex:1">
+        <button type="button" class="btn btn-sm" onclick="addDoc()">Add</button></div></div>
+    </div>
+    <div id="docs" class="hint" style="margin-top:8px"></div>
+  </div>
+
+  <!-- CODEBOOK -->
+  <div class="panel">
+    <h2><span class="stage">2</span>Codebook — current checklist items</h2>
+    <div class="lead">Deductive codes. Items marked “added” or “refined” come from earlier coding that has been applied.</div>
+    <div class="cb-list" id="codebook"></div>
+  </div>
+
+  <!-- UNITS -->
+  <div class="panel">
+    <h2><span class="stage">3</span>Text units and codes</h2>
+    <div class="lead">Add one unit per statement about bias in the document. Summarise it in your own words (short), then code it.</div>
+    <div class="form-grid">
+      <div class="form-field"><label>Document</label><select id="u-doc"></select></div>
+      <div class="form-field"><label>Clause</label><input type="text" id="u-clause" placeholder="e.g. §6.2"></div>
+      <div class="form-field" style="grid-column: span 3"><label>Summary in your own words (not the standard's text)</label>
+        <input type="text" id="u-sum" maxlength="240" placeholder="e.g. Labels from a single annotator may encode that annotator's view"></div>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+      <button type="button" class="btn btn-sm btn-primary" onclick="addUnit()">Add unit</button>
+      <label class="btn btn-sm" style="cursor:pointer">Import units / coding file
+        <input type="file" accept=".json,application/json" style="display:none" onchange="readJSONFile(this, importCoding)"></label>
+      <button type="button" class="btn btn-sm" onclick="exportUnitsForCoder2()">Export units for second coder (no codes)</button>
+    </div>
+    <div id="units"></div>
+  </div>
+
+  <!-- AGREEMENT -->
+  <div class="panel">
+    <h2><span class="stage">4</span>Second coder and agreement</h2>
+    <div class="lead">Import the second coder's coding file (same units). κ is computed on the code (match / refine / new / exclude); agreement on the target item is reported for match and refine.</div>
+    <label class="btn btn-sm" style="cursor:pointer">Import second coder's coding file
+      <input type="file" accept=".json,application/json" style="display:none" onchange="readJSONFile(this, importSecond)"></label>
+    <div id="agreement" style="margin-top:10px"></div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="panel">
+    <h2><span class="stage">5</span>Result — the built checklist</h2>
+    <div id="result"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="applyToChecklist()">Apply to checklist</button>
+      <button class="btn" onclick="resetChecklist()">Reset checklist to TR 24027 only</button>
+      <button class="btn" onclick="exportCrosswalk()">Crosswalk (CSV, no standard text)</button>
+      <button class="btn" onclick="exportBuilt()">Checklist (JSON, publishable)</button>
+      <button class="btn" onclick="exportCoding()">Coding file (JSON, private)</button>
+    </div>
+    <div class="hint" style="margin-top:6px">Applying stores the checklist in this browser; the Checklist, Metric plan and Verdict pages use it. To share it, send the publishable JSON; the receiver imports it here and applies it.</div>
+    <label class="btn btn-sm" style="cursor:pointer;margin-top:8px">Import publishable checklist JSON
+      <input type="file" accept=".json,application/json" style="display:none" onchange="readJSONFile(this, importBuilt)"></label>
+  </div>
+
+</div>
+
+<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). Standards-Based Bias &amp; Fairness Toolkit (v2) · CMU Software Engineering (CAMT), Chiang Mai University · https://evared-code.github.io/bias-detection-framework-v2/</div>
+
+<script src="bias-data.js"></script>
+<script>
+// ─── STATE ──────────────────────────────────────────────────────────
+// unit: { id, doc, clause, summary, code, target, q, cat, name, reason, note }
+let coding = { coder:'', documents:['TS 12791', '5259-2'], units:[], second:null };
+const CODES = { match:'Match', refine:'Refine', new:'New', exclude:'Exclude' };
+const EXCL = { mitigation:'Mitigation action, not a source of bias', not_observable:'Not observable in the system or data', out_of_scope:'Out of scope (not classification / regression decisions)', general_quality:'General data quality, not group-related', other:'Other (explain)' };
+const CAT = { a:'Human cognitive / process', b:'Data', c:'Engineering decision' };
+function load() { const c = lsGet(CODING_KEY); if (c) coding = Object.assign(coding, c); }
+function save() { lsSet(CODING_KEY, coding); }
+const baseItems = () => [...BASE_ITEMS.a, ...BASE_ITEMS.b, ...BASE_ITEMS.c];
+const uid = () => 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+// ─── RENDER ─────────────────────────────────────────────────────────
+function renderDocs() {
+  document.getElementById('coder').value = coding.coder || '';
+  document.getElementById('docs').innerHTML = 'Documents: ' + (coding.documents.length ? coding.documents.map(d => `<strong>${esc(d)}</strong> <button type="button" class="unit-del" onclick="removeDoc('${esc(d)}')">remove</button>`).join(' · ') : 'none');
+  document.getElementById('u-doc').innerHTML = coding.documents.map(d => `<option>${esc(d)}</option>`).join('');
+}
+function renderCodebook() {
+  const all = ALL_ITEMS();
+  document.getElementById('codebook').innerHTML = all.map(i => `<div><strong>${esc(i.id)}</strong> · ${esc(SRC(i))} · ${esc(BIAS_NAME(i))}${i.added ? ' <span class="st st-low">ADDED</span>' : ''}${i.also && i.also.length ? ' <span class="st st-low">+ ' + esc(i.also.join(', ')) + '</span>' : ''}<br><span style="color:var(--text2)">${esc(i.q)}</span></div>`).join('');
+}
+function targetOptions(sel) {
+  return `<option value="">— item —</option>` + ALL_ITEMS().map(i => `<option value="${i.id}" ${sel===i.id?'selected':''}>${i.id} · ${esc(BIAS_NAME(i))}</option>`).join('');
+}
+function unitHtml(u) {
+  const seg = Object.entries(CODES).map(([k,l]) => `<button type="button" class="${u.code===k?'code-on-'+k:''}" onclick="setU('${u.id}','code','${k}')">${l}</button>`).join('');
+  let h = `<div class="unit" id="unit-${u.id}"><div class="unit-head"><span class="unit-ref">${esc(u.doc)} ${esc(u.clause)}</span><button type="button" class="unit-del" onclick="delUnit('${u.id}')">delete</button></div>
+    <div class="unit-sum">${esc(u.summary)}</div>
+    <div class="ctrl-row"><span class="ctrl-lbl">Code</span><div class="seg">${seg}</div></div>`;
+  if (u.code === 'match' || u.code === 'refine')
+    h += `<div class="ctrl-row"><span class="ctrl-lbl">${u.code === 'match' ? 'Matches item' : 'Refines item'}</span><select class="mini-select" onchange="setU('${u.id}','target',this.value)">${targetOptions(u.target)}</select></div>`;
+  if (u.code === 'refine') {
+    const t = u.target && ALL_ITEMS().find(i => i.id === u.target);
+    h += `<div style="margin-top:6px"><span class="ctrl-lbl">Improved question (your words)</span>
+      <textarea class="mini-textarea" placeholder="${t ? esc(t.q) : 'Select an item first'}" onchange="setU('${u.id}','q',this.value)">${esc(u.q || '')}</textarea></div>`;
+  }
+  if (u.code === 'new')
+    h += `<div class="ctrl-row"><span class="ctrl-lbl">Category</span><select class="mini-select" onchange="setU('${u.id}','cat',this.value)"><option value="">— select —</option>${Object.entries(CAT).map(([k,l]) => `<option value="${k}" ${u.cat===k?'selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="ctrl-row"><span class="ctrl-lbl">Bias name</span><input class="mini-input" style="min-width:220px" value="${esc(u.name || '')}" placeholder="e.g. Annotator bias" onchange="setU('${u.id}','name',this.value)"></div>
+      <div style="margin-top:6px"><span class="ctrl-lbl">Presence question (your words)</span>
+      <textarea class="mini-textarea" placeholder="Is …? — phrase it as a question about whether the bias is present" onchange="setU('${u.id}','q',this.value)">${esc(u.q || '')}</textarea></div>`;
+  if (u.code === 'exclude')
+    h += `<div class="ctrl-row"><span class="ctrl-lbl">Reason</span><select class="mini-select" onchange="setU('${u.id}','reason',this.value)"><option value="">— select —</option>${Object.entries(EXCL).map(([k,l]) => `<option value="${k}" ${u.reason===k?'selected':''}>${l}</option>`).join('')}</select></div>`;
+  return h + `</div>`;
+}
+function renderUnits() {
+  document.getElementById('units').innerHTML = coding.units.length ? coding.units.map(unitHtml).join('') : `<div class="empty" style="margin-top:10px">No units yet.</div>`;
+}
+function incomplete(u) {
+  if (!u.code) return 'not coded';
+  if ((u.code === 'match' || u.code === 'refine') && !u.target) return 'no target item';
+  if (u.code === 'refine' && !(u.q || '').trim()) return 'no improved question';
+  if (u.code === 'new' && (!u.cat || !(u.q || '').trim() || !(u.name || '').trim())) return 'category, name or question missing';
+  if (u.code === 'exclude' && !u.reason) return 'no reason';
+  return '';
+}
+function counts() { const c = { match:0, refine:0, new:0, exclude:0, uncoded:0 }; coding.units.forEach(u => u.code ? c[u.code]++ : c.uncoded++); return c; }
+function renderResult() {
+  const c = counts(), open = coding.units.filter(incomplete);
+  let h = `<table class="status-table"><tbody>
+    <tr><td>Units</td><td class="num">${coding.units.length}</td></tr>
+    <tr><td>Match (already covered)</td><td class="num">${c.match}</td></tr>
+    <tr><td>Refine (existing item reworded)</td><td class="num">${c.refine}</td></tr>
+    <tr><td>New (added item)</td><td class="num">${c.new}</td></tr>
+    <tr><td>Exclude</td><td class="num">${c.exclude}</td></tr></tbody></table>`;
+  if (open.length) h += `<div class="verdict-box v-amber" style="margin-top:10px">${open.length} unit(s) incomplete: ${open.map(u => `${esc(u.doc)} ${esc(u.clause)} (${incomplete(u)})`).join('; ')}</div>`;
+  const b = buildChecklist();
+  if (b.items.length) h += `<div style="margin-top:10px;font-size:12px;font-weight:600">Changes to the checklist</div><div class="report-items">` +
+    b.items.map(i => `<div class="report-item-row"><span class="item-status ${i.refines?'s-unk':'s-done'}">${i.refines ? (i.kind === 'refine' ? 'REFINE' : 'MATCH') : 'NEW'}</span><div><strong>${esc(i.refines || i.id)}</strong> ${i.refines ? '+ ' + esc(i.also.join(', ')) : '· ' + esc(i.doc + ' ' + i.clause) + ' · ' + esc(i.sub.split(' — ')[0])}${i.q ? '<br>' + esc(i.q) : ' — source added, question unchanged'}</div></div>`).join('') + `</div>`;
+  const applied = lsGet(BUILT_KEY);
+  h += `<div class="hint" style="margin-top:8px">${applied ? `Applied to the checklist on ${esc(new Date(applied.generated).toLocaleString())}.` : 'Not applied yet — the checklist uses TR 24027 only.'}</div>`;
+  document.getElementById('result').innerHTML = h;
+}
+function renderAgreement() {
+  const el = document.getElementById('agreement');
+  if (!coding.second) { el.innerHTML = '<div class="hint">No second coding imported.</div>'; return; }
+  const other = Object.fromEntries(coding.second.units.map(u => [u.id, u]));
+  const pairs = coding.units.filter(u => u.code && other[u.id] && other[u.id].code).map(u => [u, other[u.id]]);
+  if (!pairs.length) { el.innerHTML = '<div class="hint">No units coded by both coders (units must come from the same exported unit file).</div>'; return; }
+  const n = pairs.length, keys = Object.keys(CODES);
+  const po = pairs.filter(([a,b]) => a.code === b.code).length / n;
+  const pe = keys.reduce((s, k) => s + (pairs.filter(([a]) => a.code === k).length / n) * (pairs.filter(([,b]) => b.code === k).length / n), 0);
+  const kappa = pe === 1 ? 1 : (po - pe) / (1 - pe);
+  const tgt = pairs.filter(([a,b]) => a.code === b.code && (a.code === 'match' || a.code === 'refine'));
+  const tAgree = tgt.filter(([a,b]) => a.target === b.target).length;
+  const dis = pairs.filter(([a,b]) => a.code !== b.code || ((a.code === 'match' || a.code === 'refine') && a.target !== b.target));
+  coding.kappa = { n, po, pe, kappa, coder2: coding.second.coder || 'coder 2' }; save();
+  el.innerHTML = `<div style="display:flex;gap:24px;align-items:flex-end;flex-wrap:wrap">
+      <div><div class="kappa">κ = ${kappa.toFixed(2)}</div><div class="hint">Cohen's κ on the code · ${n} units · observed agreement ${(po*100).toFixed(0)}%</div></div>
+      <div class="hint">Same target item (match / refine): ${tgt.length ? `${tAgree}/${tgt.length}` : '—'}<br>Second coder: ${esc(coding.second.coder || '—')}</div></div>
+    ${dis.length ? `<div style="margin-top:10px;font-size:12px;font-weight:600">Disagreements to resolve (${dis.length})</div><table class="gtable"><thead><tr><th style="text-align:left">Unit</th><th style="text-align:left">You</th><th style="text-align:left">Second coder</th><th></th></tr></thead><tbody>` +
+      dis.map(([a,b]) => `<tr><td style="text-align:left">${esc(a.doc)} ${esc(a.clause)} — ${esc(a.summary)}</td><td style="text-align:left">${CODES[a.code]}${a.target ? ' ' + a.target : ''}</td><td style="text-align:left">${CODES[b.code]}${b.target ? ' ' + b.target : ''}</td><td><button type="button" class="btn btn-sm" onclick="useSecond('${a.id}')">Use second</button></td></tr>`).join('') + `</tbody></table>` : '<div class="verdict-box v-green" style="margin-top:10px">No disagreements.</div>'}`;
+}
+function renderAll() { renderDocs(); renderCodebook(); renderUnits(); renderAgreement(); renderResult(); }
+
+// ─── INTERACTIONS ───────────────────────────────────────────────────
+function setCoder(v) { coding.coder = v; save(); }
+function addDoc() { const v = document.getElementById('new-doc').value.trim(); if (!v) return; if (!coding.documents.includes(v)) coding.documents.push(v); document.getElementById('new-doc').value = ''; save(); renderDocs(); }
+function removeDoc(d) { if (coding.units.some(u => u.doc === d)) { alert('Units of this document exist. Delete them first.'); return; } coding.documents = coding.documents.filter(x => x !== d); save(); renderDocs(); }
+function addUnit() {
+  const doc = document.getElementById('u-doc').value, clause = document.getElementById('u-clause').value.trim(), summary = document.getElementById('u-sum').value.trim();
+  if (!doc || !clause || !summary) { alert('Document, clause and summary are needed.'); return; }
+  if (summary.length > 200 && !confirm('This summary is long. Is it in your own words, not copied from the standard?')) return;
+  coding.units.push({ id:uid(), doc, clause, summary, code:'' });
+  document.getElementById('u-clause').value = ''; document.getElementById('u-sum').value = '';
+  save(); renderUnits(); renderResult();
+}
+function delUnit(id) { if (!confirm('Delete this unit?')) return; coding.units = coding.units.filter(u => u.id !== id); save(); renderUnits(); renderAgreement(); renderResult(); }
+function setU(id, k, v) {
+  const u = coding.units.find(x => x.id === id); if (!u) return;
+  u[k] = (k === 'code' && u.code === v) ? '' : v;
+  save();
+  const w = document.createElement('div'); w.innerHTML = unitHtml(u).trim();
+  document.getElementById('unit-' + id).replaceWith(w.firstElementChild);
+  renderAgreement(); renderResult();
+}
+function useSecond(id) {
+  const u = coding.units.find(x => x.id === id), b = coding.second.units.find(x => x.id === id);
+  ['code','target','q','cat','name','reason'].forEach(k => u[k] = b[k]);
+  save(); renderAll();
+}
+
+// ─── BUILD ──────────────────────────────────────────────────────────
+function buildChecklist() {
+  const items = [], next = { a: BASE_ITEMS.a.length, b: BASE_ITEMS.b.length, c: BASE_ITEMS.c.length };
+  const refined = {};
+  coding.units.filter(u => !incomplete(u)).forEach(u => {
+    if (u.code === 'refine') {
+      const r = refined[u.target] = refined[u.target] || { refines:u.target, kind:'match', q:'', also:[] };
+      r.kind = 'refine'; r.q = u.q.trim(); r.also.push(`${u.doc} ${u.clause}`);
+    } else if (u.code === 'match') {
+      const r = refined[u.target] = refined[u.target] || { refines:u.target, kind:'match', q:'', also:[] };
+      r.also.push(`${u.doc} ${u.clause}`);
+    } else if (u.code === 'new') {
+      next[u.cat]++;
+      items.push({ id: u.cat + next[u.cat], doc: u.doc, clause: u.clause, q: u.q.trim(), sub: `${u.name.trim()} — added from ${u.doc} ${u.clause} by hybrid coding.` });
+    }
+  });
+  Object.values(refined).forEach(r => { r.also = [...new Set(r.also)]; items.push(r); });
+  return { source:'iso24027-built-checklist', version:1, generated:new Date().toISOString(), documents:[...new Set(coding.units.map(u => u.doc))], coder:coding.coder || null, kappa:coding.kappa || null, items };
+}
+function applyToChecklist() {
+  const open = coding.units.filter(incomplete).length;
+  if (open && !confirm(`${open} unit(s) are incomplete and will be ignored. Apply anyway?`)) return;
+  lsSet(BUILT_KEY, buildChecklist());
+  location.reload();
+}
+function resetChecklist() { if (!confirm('Remove the built checklist from this browser? Your coding stays.')) return; localStorage.removeItem(BUILT_KEY); location.reload(); }
+
+// ─── IMPORT / EXPORT ────────────────────────────────────────────────
+function stamp() { return new Date().toISOString().slice(0,10); }
+function exportCoding() { downloadFile('coding_private_' + (coding.coder || 'coder').replace(/\W+/g,'_') + '_' + stamp() + '.json', JSON.stringify({ source:'iso24027-coding', version:1, private:true, exported:new Date().toISOString(), coder:coding.coder, documents:coding.documents, units:coding.units }, null, 2), 'application/json'); }
+function exportUnitsForCoder2() {
+  if (!coding.units.length) { alert('No units to export.'); return; }
+  downloadFile('units_for_second_coder_' + stamp() + '.json', JSON.stringify({ source:'iso24027-coding', version:1, private:true, exported:new Date().toISOString(), coder:'', documents:coding.documents, units:coding.units.map(u => ({ id:u.id, doc:u.doc, clause:u.clause, summary:u.summary, code:'' })) }, null, 2), 'application/json');
+}
+function importCoding(d) {
+  if (d.source !== 'iso24027-coding') { alert('Not a coding file.'); return; }
+  if (coding.units.length && !confirm('Replace your units and codes with this file?')) return;
+  coding.documents = d.documents || coding.documents; coding.units = d.units || []; if (d.coder) coding.coder = d.coder;
+  save(); renderAll();
+}
+function importSecond(d) {
+  if (d.source !== 'iso24027-coding') { alert('Not a coding file.'); return; }
+  coding.second = { coder:d.coder, units:d.units || [] }; save(); renderAgreement();
+}
+function importBuilt(d) {
+  if (d.source !== 'iso24027-built-checklist') { alert('Not a built checklist file.'); return; }
+  lsSet(BUILT_KEY, d); location.reload();
+}
+function exportBuilt() { downloadFile('checklist_built_' + stamp() + '.json', JSON.stringify(buildChecklist(), null, 2), 'application/json'); }
+function exportCrosswalk() {
+  const lines = [TOOL_NAME + ' — crosswalk (clause references only; no standard text)',
+    'Coder,' + csvCell(coding.coder), coding.kappa ? `Cohen's kappa,${coding.kappa.kappa.toFixed(3)},units,${coding.kappa.n},second coder,${csvCell(coding.kappa.coder2)}` : 'Cohen\'s kappa,not computed', '',
+    'Document,Clause,Code,Target item,Target source,Category,Bias name,Question (own words),Exclusion reason'];
+  coding.units.forEach(u => {
+    const t = u.target && ALL_ITEMS().find(i => i.id === u.target);
+    lines.push([csvCell(u.doc), csvCell(u.clause), u.code ? CODES[u.code] : 'not coded', u.target || '', t ? csvCell(SRC(t)) : '',
+      u.code === 'new' ? CAT[u.cat] || '' : '', csvCell(u.code === 'new' ? u.name : ''), csvCell(u.code === 'new' || u.code === 'refine' ? u.q : ''),
+      u.code === 'exclude' ? csvCell(EXCL[u.reason] || '') : ''].join(','));
+  });
+  const c = counts(); lines.push('', `Match,${c.match}`, `Refine,${c.refine}`, `New,${c.new}`, `Exclude,${c.exclude}`);
+  downloadFile('crosswalk_' + stamp() + '.csv', '﻿' + lines.join('\n'), 'text/csv');
+}
+
+// ─── INIT ───────────────────────────────────────────────────────────
+load(); renderAll();
+</script>
+</body>
+</html>

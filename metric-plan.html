@@ -25,6 +25,7 @@
   </div>
   <div class="nav">
     <a href="index.html">← Overview</a>
+    <a href="standards.html">A · Build checklist</a>
     <a href="checklist.html">1 · Checklist</a>
     <a href="metric-plan.html" class="current">2 · Metric plan</a>
     <a href="magnitude.html">3 · Magnitude</a>
@@ -266,7 +267,7 @@ function renderSource() {
   const conf = confirmedItems().length;
   const answered = Object.values(checklist.status).filter(Boolean).length;
   document.getElementById('source-lead').innerHTML = answered
-    ? `Loaded from the checklist in this browser${info['sys-name'] ? ` for <strong>${esc(info['sys-name'])}</strong>` : ''}: ${answered}/23 answered, <strong>${conf} confirmed</strong>. Only confirmed clauses appear below. Using a different browser? Export the statuses from the checklist report and import them here.`
+    ? `Loaded from the checklist in this browser${info['sys-name'] ? ` for <strong>${esc(info['sys-name'])}</strong>` : ''}: ${answered}/${ALL_ITEMS().length} answered, <strong>${conf} confirmed</strong>. Only confirmed clauses appear below. Using a different browser? Export the statuses from the checklist report and import them here.`
     : `No checklist answers found in this browser. Complete the <a href="checklist.html">checklist</a> first, or import a checklist JSON export.`;
 }
 

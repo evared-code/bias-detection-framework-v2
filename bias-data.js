@@ -37,7 +37,7 @@ const ITEMS = {
 };
 const TOOL_NAME = 'Standards-Based Bias & Fairness Toolkit';
 // Source of a checklist item: standard + clause (default TR 24027)
-const SRC = item => (item.doc || 'TR 24027') + ' ' + item.clause;
+const SRC = item => (item.doc || 'TR 24027') + ' ' + item.clause + (item.also && item.also.length ? ' + ' + item.also.join(', ') : '');
 const ALL_ITEMS = () => [...ITEMS.a, ...ITEMS.b, ...ITEMS.c];
 const ITEM_BY_ID = id => ALL_ITEMS().find(i => i.id === id);
 const BIAS_NAME = item => item.sub.split(' — ')[0];
@@ -89,6 +89,9 @@ const PLAN_STATE_KEY = 'iso24027_metric_plan_state_v1';
 const PLAN_KEY = 'iso24027_metric_plan';
 const MAG_KEY = 'iso24027_magnitude';
 const VERDICT_KEY = 'iso24027_verdict_state_v1';
+const CODING_KEY = 'iso24027_coding_v1';       // stage A coding (private, stays in this browser)
+const BUILT_KEY = 'iso24027_built_checklist_v1'; // checklist built in stage A (no standard text)
+const BASE_ITEMS = JSON.parse(JSON.stringify(ITEMS));
 
 // Read a JSON export chosen in an <input type="file"> and pass it to cb
 function readJSONFile(input, cb) {
@@ -110,3 +113,21 @@ function downloadFile(name, text, type) {
   a.href = URL.createObjectURL(blob); a.download = name; a.click();
 }
 function csvCell(s) { return '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"'; }
+
+// ─── Built checklist (stage A) ──────────────────────────────────────
+// Applies items added (New) or reworded (Refine) in standards.html. Contains only
+// clause references and questions written by the coders — never standard text.
+function applyBuilt(b) {
+  if (!b || !Array.isArray(b.items)) return 0;
+  let n = 0;
+  b.items.forEach(it => {
+    if (it.refines) {
+      const t = ['a','b','c'].map(k => ITEMS[k].find(x => x.id === it.refines)).find(Boolean);
+      if (t) { if (it.q) t.q = it.q; t.also = [...new Set([...(t.also || []), ...(it.also || [])])]; n++; }
+    } else if (it.id && ITEMS[it.id[0]] && !ITEMS[it.id[0]].some(x => x.id === it.id)) {
+      ITEMS[it.id[0]].push({ id:it.id, doc:it.doc, clause:it.clause, q:it.q, sub:it.sub, added:true }); n++;
+    }
+  });
+  return n;
+}
+const BUILT_APPLIED = applyBuilt(lsGet(BUILT_KEY));

@@ -26,6 +26,7 @@
   </div>
   <div class="nav">
     <a href="index.html">← Overview</a>
+    <a href="standards.html">A · Build checklist</a>
     <a href="checklist.html" class="current">1 · Checklist</a>
     <a href="metric-plan.html">2 · Metric plan</a>
     <a href="magnitude.html">3 · Magnitude</a>
@@ -61,6 +62,8 @@
     <strong>Unknown</strong> (it has not been checked, there is no information, or you have no authority to answer). Add evidence for every status. Confirmed biases move on to the <a href="metric-plan.html">Metric plan</a>, where you decide which ones can be measured and how.<br><br>
     <strong>Who answers?</strong> The checklist is general; each item is answered by whoever has the authority to know — the API provider (e.g. training data, model design) or the API consumer (e.g. use in context). If the provider cannot take part (e.g. a third-party LLM), cite public documentation such as model or system cards as evidence, or mark the item <strong>Unknown — no authority</strong>. The tag on each item shows the standard and clause it comes from.
   </div>
+
+  <div id="built-note"></div>
 
   <div class="summary">
     <div class="stat"><div class="stat-num" id="s-done" style="color:var(--gold-deep)">0/23</div><div class="stat-lbl">Answered</div></div>
@@ -184,8 +187,8 @@ function itemHtml(item, cat) {
   return `
     <div class="check-item" id="item-${id}">
       <div class="check-content">
-        <div class="check-q">${item.q}</div>
-        <div class="check-sub">${item.sub}</div>
+        <div class="check-q">${esc(item.q)}</div>
+        <div class="check-sub">${esc(item.sub)}</div>
         <div class="ctrl-row">
           <span class="ctrl-lbl">Bias present?</span>
           <div class="seg">${Object.entries(STATUS).map(([k,l]) =>
@@ -215,7 +218,11 @@ function renderItem(id) {
   const w = document.createElement('div'); w.innerHTML = itemHtml(item, cat).trim();
   document.getElementById('item-' + id).replaceWith(w.firstElementChild);
 }
-function renderAll() { ['a','b','c'].forEach(renderItems); updateProgress(); }
+function renderAll() {
+  ['a','b','c'].forEach(renderItems); updateProgress();
+  const b = lsGet(BUILT_KEY), el = document.getElementById('built-note');
+  el.innerHTML = BUILT_APPLIED && b ? `<div class="verdict-box v-green" style="margin-bottom:14px">This checklist includes the result of stage A coding (${(b.documents||[]).map(esc).join(', ') || 'additional standards'}): ${b.items.filter(i=>!i.refines).length} item(s) added, ${b.items.filter(i=>i.kind==='refine').length} reworded, ${b.items.filter(i=>i.refines && i.kind!=='refine').length} matched (source added). Manage it on <a href="standards.html">A · Build checklist</a>.</div>` : '';
+}
 
 // ─── INTERACTIONS ────────────────────────────────────────────────────
 function setStatus(id, k) {
@@ -283,7 +290,7 @@ function showReport() {
   section('unknown', all.filter(i => state.status[i.id]==='unknown').map(i => row('s-unk','UNKNOWN',
     `<strong style="font-size:12px">${SRC(i)}</strong> — ${esc(BIAS_NAME(i))}<br><span style="font-size:11px">Reason: ${state.unkReason[i.id] ? UNK_REASON[state.unkReason[i.id]] : '<span style="color:var(--red)">not given</span>'}</span>${ev(i.id)}`)).join(''));
   section('np', all.filter(i => state.status[i.id]==='not_present').map(i => row('s-done','NOT PRESENT',`<strong style="font-size:12px">${SRC(i)}</strong> — ${esc(BIAS_NAME(i))}${ev(i.id)}`)).join(''));
-  section('open', all.filter(i => !state.status[i.id]).map(i => row('s-miss','OPEN',`<strong style="font-size:12px">${SRC(i)}</strong> — ${i.q}`)).join(''));
+  section('open', all.filter(i => !state.status[i.id]).map(i => row('s-miss','OPEN',`<strong style="font-size:12px">${SRC(i)}</strong> — ${esc(i.q)}`)).join(''));
 
   const ready = (id, label, why) => {
     const s = state.status[id];

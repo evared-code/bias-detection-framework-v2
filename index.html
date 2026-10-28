@@ -147,6 +147,7 @@
     </div>
   </div>
   <div class="nav-links">
+    <a class="nl nl-o" href="standards.html">A · Build</a>
     <a class="nl nl-s" href="checklist.html">1 · Checklist</a>
     <a class="nl nl-o" href="metric-plan.html">2 · Metric plan</a>
     <a class="nl nl-o" href="magnitude.html">3 · Magnitude</a>
@@ -159,6 +160,13 @@
   <h1>Bias was never written<br>as a <span>requirement</span></h1>
   <p>Not because anyone decided against it — but because nobody thought to include it. This toolkit derives what to look for from ISO/IEC standards, measures bias from case data, and leaves the fairness verdict to the domain expert, in context.</p>
   <div class="hero-tools">
+    <a class="tool-card" href="standards.html">
+      <div class="tool-step">Step A · Researcher</div>
+      <div class="tool-icon ic-c">&#128218;</div>
+      <h3>Build Checklist</h3>
+      <p>Hybrid coding of other standards against the TR 24027 codebook: match, refine, new or exclude — with a second coder and Cohen's κ.</p>
+      <div class="tool-arrow">Open builder →</div>
+    </a>
     <a class="tool-card" href="checklist.html">
       <div class="tool-step">Step 1 · Stage B</div>
       <div class="tool-icon ic-a">&#9745;</div>
@@ -222,9 +230,9 @@
   <div class="sec">
     <div class="sec-lbl">The framework</div>
     <h2>From ISO/IEC standards to a fairness verdict</h2>
-    <p>ISO/IEC TR 24027 is informative: it lists sources of bias (§6) and metrics (§7) but gives no procedure. The researcher interprets it, together with TS 12791 and 5259-2, by hybrid deductive–inductive coding (step A). The four pages below then keep measurement (magnitude) separate from judgement (verdict).</p>
+    <p>ISO/IEC TR 24027 is informative: it lists sources of bias (§6) and metrics (§7) but gives no procedure. The researcher interprets it, together with TS 12791 and 5259-2, by hybrid deductive–inductive coding on the <a href="standards.html" style="text-decoration:underline">Build checklist</a> page (step A). The four pages after it keep measurement (magnitude) separate from judgement (verdict).</p>
     <div class="flow">
-      <div class="fs"><div class="fn">A</div><div class="ft">Interpret standards</div><div class="fb">Researcher · hybrid coding</div></div>
+      <a class="fs" href="standards.html"><div class="fn">A</div><div class="ft">Build checklist</div><div class="fb">Hybrid coding · κ</div></a>
       <a class="fs" href="checklist.html"><div class="fn">1 · B</div><div class="ft">Checklist</div><div class="fb">Confirm the bias list</div></a>
       <a class="fs" href="metric-plan.html"><div class="fn">2 · C–E</div><div class="ft">Metric plan</div><div class="fb">Measurable? → metric · lock</div></a>
       <a class="fs" href="magnitude.html"><div class="fn">3 · F</div><div class="ft">Magnitude</div><div class="fb">Size of bias · n · CI</div></a>
@@ -293,6 +301,7 @@
     <h2>GitHub file structure</h2>
     <p>All files below should be in the root of your GitHub repository. Deploy via GitHub Pages (Settings → Pages → main branch / root). Your own case data can use any column names; set them in the Metric plan (one row per decision, as in <code>example_data.csv</code>). Data are processed in the browser only; nothing is uploaded.</p>
     <div class="file-grid">
+      <a class="fc" href="standards.html"><div class="fi">&#128218;</div><div><div class="fname">standards.html</div><div class="fdesc">Step A · Build the checklist by hybrid coding of other standards (clause references and own words only — no standard text).</div></div></a>
       <a class="fc" href="checklist.html"><div class="fi">&#9745;</div><div><div class="fname">checklist.html</div><div class="fdesc">Step 1 · Confirm each checklist item (confirmed / not present / unknown) with evidence and source clause.</div></div></a>
       <a class="fc" href="metric-plan.html"><div class="fi">&#9881;</div><div><div class="fname">metric-plan.html</div><div class="fdesc">Step 2 · Context, measurability, §7 metric, subgroup and rules — locked before results.</div></div></a>
       <a class="fc" href="magnitude.html"><div class="fi">&#128202;</div><div><div class="fname">magnitude.html</div><div class="fdesc">Step 3 · Upload CSV → minimum case inputs, then gap, ratio, n and bootstrap 95% CI per subgroup.</div></div></a>
