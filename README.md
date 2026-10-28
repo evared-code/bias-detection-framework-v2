@@ -2,7 +2,7 @@
 
 A browser-based toolkit that derives what bias to look for from ISO/IEC standards (TR 24027, with TS 12791 and 5259-2 by hybrid deductive–inductive coding), measures bias from case data, and keeps **measurement (magnitude)** separate from **judgement (verdict)**.
 
-Live site: https://evared-code.github.io/bias-detection-framework/
+Live site: https://evared-code.github.io/bias-detection-framework-v2/
 
 ## Workflow
 
