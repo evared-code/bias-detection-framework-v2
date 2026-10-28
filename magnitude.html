@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ISO 24027 Magnitude</title>
+<title>Magnitude — Standards-Based Bias &amp; Fairness Toolkit</title>
 <link rel="stylesheet" href="style.css">
 <style>
   .res-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 12px; }
@@ -31,7 +31,7 @@
   <div class="header-top">
     <div>
       <div class="header-badges">
-        <span class="badge badge-iso">ISO/IEC 24027:2021</span>
+        <span class="badge badge-iso">ISO/IEC TR 24027 §7</span>
         <span class="badge badge-proxy">Magnitude</span>
       </div>
       <h1>F · Compute magnitude</h1>
@@ -75,6 +75,12 @@
   </div>
 
   <div class="panel">
+    <h2>Minimum case inputs</h2>
+    <div class="lead">What this case provides, what is missing, and what each gap does to the results. Missing inputs are findings in their own right: they show what a case must provide to reach a verdict.</div>
+    <div id="inputs"><div class="empty">Load a plan and a CSV file to check.</div></div>
+  </div>
+
+  <div class="panel">
     <h2>Results</h2>
     <div class="lead">Gap = other group − reference group. “Significant disparity” means the 95% CI excludes 0. Whether a gap is acceptable is decided on the Verdict page.</div>
     <div id="results"><div class="empty">Load a plan and a CSV file to compute.</div></div>
@@ -87,7 +93,7 @@
 
 </div>
 
-<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). ISO 24027 Bias Detection Framework · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
+<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). Standards-Based Bias &amp; Fairness Toolkit · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
 
 <script src="bias-data.js"></script>
 <script>
@@ -287,6 +293,7 @@ function compute() {
   });
   lsSet(MAG_KEY, payload());
   renderResults();
+  renderInputs();
 }
 
 // ─── RENDER ─────────────────────────────────────────────────────────
@@ -324,10 +331,65 @@ function renderResults() {
   }).join('');
 }
 
+// ─── MINIMUM CASE INPUTS ───────────────────────────────────────────
+function caseInputs() {
+  if (!plan || !rows || !results) return null;
+  const d = plan.data, c = plan.context || {}, head = rows._head;
+  const out = [];
+  const used = prepare(plan.customisation.threshold).length;
+  out.push({ input:'Decision output per row (score or flag)',
+    ok: head.includes(d.outCol) && used > 0 ? (used === rows.length ? 'ok' : 'partial') : 'missing',
+    detail: head.includes(d.outCol) ? `${used} of ${rows.length} rows usable (column "${d.outCol}")` : `column "${d.outCol}" not found`,
+    effect:'Without it nothing can be measured: every comparison is indeterminate.' });
+  out.push({ input:'Raw score and decision rule',
+    ok: d.rawScore ? 'ok' : 'partial',
+    detail: d.rawScore ? `raw score; rule ${plan.decisionRule || ''}` : 'flag only',
+    effect: d.rawScore ? 'Threshold sensitivity can be run.' : 'Metrics use the delivered flag only; no threshold sensitivity.' });
+  const subs = [...new Set(plan.compute.map(x => x.subgroup).filter(Boolean))];
+  const missSub = subs.filter(s => !head.includes(s));
+  out.push({ input:'Group attributes',
+    ok: !subs.length ? 'missing' : missSub.length ? 'partial' : 'ok',
+    detail: subs.length ? subs.map(s => s + (head.includes(s) ? '' : ' (missing)')).join(', ') : 'no subgroup in the plan',
+    effect:'Missing group columns make the comparison for that subgroup indeterminate.' });
+  out.push({ input:'Reference label',
+    ok: d.reference === 'validated' ? 'ok' : d.reference === 'proxy' ? 'partial' : 'missing',
+    detail: d.reference === 'validated' ? 'validated label' : d.reference === 'proxy' ? 'proxy (exploratory)' : 'none',
+    effect: d.reference === 'none' ? 'Only §7.5 demographic parity is computable.' : d.reference === 'proxy' ? 'Error-rate metrics are exploratory until validated labels replace the proxy.' : 'All §7 metrics are computable.' });
+  const undef = []; const lowN = new Set();
+  results.forEach(r => r.comparisons.forEach(k => {
+    if (k.status === 'indeterminate' && /undefined/.test(k.reason || '')) undef.push(`${r.subgroup}: ${k.group} vs ${r.referenceGroup}`);
+    if (k.lowN) lowN.add(`${r.subgroup}: ${k.group}`);
+  }));
+  if (d.reference !== 'none') out.push({ input:'Reference positives and negatives in each group',
+    ok: undef.length ? 'partial' : 'ok',
+    detail: undef.length ? 'rate undefined for ' + [...new Set(undef)].join('; ') : 'present in all compared groups',
+    effect:'A group without reference positives (or negatives) has no TPR (or FPR): that comparison is indeterminate.' });
+  out.push({ input:`Sufficient n per group (min ${d.minN})`,
+    ok: lowN.size ? 'partial' : 'ok',
+    detail: lowN.size ? 'below minimum: ' + [...lowN].join('; ') : 'all groups at or above minimum',
+    effect:'With small n, “not distinguishable from 0” may only reflect limited data.' });
+  out.push({ input:'Context (domain, law, affected groups)',
+    ok: c.domain && c.stakes ? 'ok' : (c.domain || c.stakes ? 'partial' : 'missing'),
+    detail: [c.domain, c.stakes].filter(Boolean).map(esc).join(' · ') || 'not recorded in the plan',
+    effect:'Without context the metric choice and the verdict lack justification.' });
+  out.push({ input:'Verdict owner with domain authority',
+    ok:'later', detail:'set on the Verdict page',
+    effect:'Without one, bias is measured but no fairness verdict can be given.' });
+  return out;
+}
+function renderInputs() {
+  const el = document.getElementById('inputs'); if (!el) return;
+  const list = caseInputs();
+  if (!list) { el.innerHTML = `<div class="empty">Load a plan and a CSV file to check.</div>`; return; }
+  const B = { ok:'<span class="st st-ns">PROVIDED</span>', partial:'<span class="st st-low">PARTIAL</span>', missing:'<span class="st st-sig">MISSING</span>', later:'<span class="st st-ind">NEXT STEP</span>' };
+  el.innerHTML = `<table class="gtable"><thead><tr><th style="text-align:left">Input</th><th style="text-align:left">Status</th><th style="text-align:left">In this case</th><th style="text-align:left">If missing or partial</th></tr></thead><tbody>` +
+    list.map(x => `<tr><td style="text-align:left">${esc(x.input)}</td><td style="text-align:left">${B[x.ok]}</td><td style="text-align:left">${esc(x.detail)}</td><td style="text-align:left;color:var(--text2)">${esc(x.effect)}</td></tr>`).join('') + `</tbody></table>`;
+}
+
 // ─── EXPORT ─────────────────────────────────────────────────────────
 function payload() {
   return {
-    source:'iso24027-magnitude', version:1, generated:new Date().toISOString(),
+    source:'iso24027-magnitude', version:1, generated:new Date().toISOString(), caseInputs: caseInputs(),
     plan: plan ? { system:plan.system, locked:plan.locked, lockedAt:plan.lockedAt, context:plan.context, decisionRule:plan.decisionRule,
                    referenceDescription:plan.referenceDescription, minN:plan.data.minN, generated:plan.generated } : null,
     data: rows ? { file:fileName, rows:rows.length } : null,

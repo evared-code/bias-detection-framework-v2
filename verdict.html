@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ISO 24027 Verdict</title>
+<title>Verdict — Standards-Based Bias &amp; Fairness Toolkit</title>
 <link rel="stylesheet" href="style.css">
 <style>
   .kv { font-size: 12px; color: var(--text2); line-height: 1.8; }
@@ -48,10 +48,10 @@
   <div class="header-top">
     <div>
       <div class="header-badges">
-        <span class="badge badge-iso">ISO/IEC 24027:2021</span>
+        <span class="badge badge-iso">ISO/IEC 23894 · TR 24368</span>
         <span class="badge badge-proxy">Verdict</span>
       </div>
-      <h1>G · Verdict — is the measured bias unwanted in context?</h1>
+      <h1>G · Verdict — is the measured result fair in context?</h1>
       <p>For the domain expert. Set tolerances first; results stay hidden until the tolerances are locked.</p>
     </div>
     <div class="header-actions">
@@ -121,7 +121,7 @@
 
 </div>
 
-<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). ISO 24027 Bias Detection Framework · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
+<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). Standards-Based Bias &amp; Fairness Toolkit · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
 
 <script src="bias-data.js"></script>
 <script>
@@ -157,7 +157,8 @@ function renderInputs() {
   document.getElementById('context').innerHTML = `
     <strong>Domain:</strong> ${esc(c.domain || '—')}<br>
     <strong>Law / policy:</strong> ${esc(c.law || '—')}<br>
-    <strong>Stakes:</strong> ${esc(c.stakes || '—')}<br>
+    <strong>Affected groups:</strong> ${esc(c.stakes || '—')}<br>
+    <strong>API response:</strong> ${esc({score:'raw score',flag:'flag only',other:'other'}[c.apiResponse] || '—')}<br>
     <strong>Model version:</strong> ${esc(c.modelVersion || '—')} · <strong>Decision rule:</strong> ${esc(plan ? plan.decisionRule : '—')} · <strong>Reference:</strong> ${esc(plan ? plan.referenceDescription : '—')}`;
   document.getElementById('owner').value = V.owner;
   document.getElementById('role').value = V.role;
@@ -173,7 +174,7 @@ function renderTol() {
       return `<tr><td>${esc(c.clause)} ${esc(c.name)}<br><span style="color:var(--text3);font-size:11px">from ${c.from.join(', ')}</span></td>
         <td>${esc(c.subgroup || '—')}</td><td style="font-size:11px;color:var(--text2)">${esc(METRICS[c.metric].measures)}</td>
         <td><input class="mini-input" type="number" step="0.01" min="0" style="min-width:0" value="${t.value ?? ''}" onchange="setTol('${esc(c.subgroup)}','${c.metric}','value',this.value)"></td>
-        <td><input class="mini-input" type="text" style="min-width:0" value="${esc(t.source || '')}" placeholder="e.g. clinical panel: missing >10% more high-risk users is unacceptable" onchange="setTol('${esc(c.subgroup)}','${c.metric}','source',this.value)"></td></tr>`;
+        <td><input class="mini-input" type="text" style="min-width:0" value="${esc(t.source || '')}" placeholder="e.g. risk criteria (cf. ISO/IEC 23894); clinical panel: missing >10% more high-risk users is unacceptable" onchange="setTol('${esc(c.subgroup)}','${c.metric}','source',this.value)"></td></tr>`;
     }).join('') + `</tbody></table>
     <div class="hint">Different metrics may deserve different tolerances: missing high-risk users (TPR) can be more harmful than over-flagging (FPR).</div>`;
   document.getElementById('tol-fs').disabled = V.tolLocked;
@@ -241,9 +242,9 @@ function cardHtml(x) {
     · Tolerance ${hasTol ? `±${f3(tol)} → ${exceeds ? '<span class="st st-sig">EXCEEDED</span>' : '<span class="st st-ns">WITHIN</span>'}` : '<span class="st st-low">NOT SET</span>'}</div>`;
 
   if (c.status === 'significant') {
-    h += `<div class="ctrl-row"><span class="ctrl-lbl">Unwanted in context?</span><div class="seg">
-        <button type="button" class="${d.unwanted==='yes'?'on-confirmed':''}" onclick="decide('${x.key}','unwanted','yes')">Yes — unwanted</button>
-        <button type="button" class="${d.unwanted==='no'?'on-not_present':''}" onclick="decide('${x.key}','unwanted','no')">No — justified</button></div></div>
+    h += `<div class="ctrl-row"><span class="ctrl-lbl">Fair in context?</span><div class="seg">
+        <button type="button" class="${d.unwanted==='yes'?'on-confirmed':''}" onclick="decide('${x.key}','unwanted','yes')">Unfair — unwanted bias</button>
+        <button type="button" class="${d.unwanted==='no'?'on-not_present':''}" onclick="decide('${x.key}','unwanted','no')">Fair — justified disparity</button></div></div>
       <div class="hint">${exceeds === true ? 'The gap exceeds your tolerance. Answering “No” needs a justification, e.g. a real base-rate difference that the metric should not hide.'
         : exceeds === false ? 'The gap is real but within your tolerance. Answering “Yes” needs a context reason, e.g. the affected group is especially vulnerable.'
         : 'No tolerance was set: state the reason for your answer.'}</div>
@@ -260,8 +261,8 @@ function cardHtml(x) {
         <label><input type="checkbox" ${ch.proc?'checked':''} onchange="check('${x.key}','proc',this.checked)"> Procedural fairness considered (explanation, override, appeal)</label>
       </div>
       <div class="ctrl-row"><span class="ctrl-lbl">Unfair on other checks?</span><div class="seg">
-        <button type="button" class="${d.hidden==='yes'?'on-confirmed':''}" onclick="decide('${x.key}','hidden','yes')">Yes — hidden unfairness</button>
-        <button type="button" class="${d.hidden==='no'?'on-not_present':''}" ${ch.needs && ch.other && ch.inter && ch.proc ? '' : 'disabled title="Tick all four checks first"'} onclick="decide('${x.key}','hidden','no')">No — no concern</button></div></div>
+        <button type="button" class="${d.hidden==='yes'?'on-confirmed':''}" onclick="decide('${x.key}','hidden','yes')">Unfair — hidden unfairness</button>
+        <button type="button" class="${d.hidden==='no'?'on-not_present':''}" ${ch.needs && ch.other && ch.inter && ch.proc ? '' : 'disabled title="Tick all four checks first"'} onclick="decide('${x.key}','hidden','no')">Fair — no concern</button></div></div>
       <textarea class="mini-textarea" style="margin-top:6px" placeholder="Note (what you found in the checks)" oninput="note('${x.key}','note',this.value)">${esc(d.note || '')}</textarea>`;
   }
   return h + `</div>`;

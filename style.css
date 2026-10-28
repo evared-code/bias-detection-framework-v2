@@ -202,13 +202,13 @@
   fieldset:disabled .seg button, fieldset:disabled .chip { cursor: not-allowed; opacity: 0.7; }
   .empty { font-size: 13px; color: var(--text2); padding: 12px 0; }
 
-  /* ─── Theme: gold (shared with index.html) ─── */
+  /* ─── Theme: brown (shared with index.html); variable names kept from the earlier gold theme ─── */
   :root {
-    --gold: #c9a227;        /* accent: lines, bars, hover */
-    --gold-deep: #8a6d1b;   /* buttons, current step */
-    --gold-dark: #6b5415;   /* text on pale gold */
-    --gold-bright: #f2d16b; /* highlight on dark gold */
-    --gold-light: #fbf5e4;  /* pale backgrounds */
+    --gold: #a0714c;        /* accent: lines, bars, hover */
+    --gold-deep: #7a5134;   /* buttons, current step */
+    --gold-dark: #563823;   /* text on pale brown */
+    --gold-bright: #e8c9a2; /* highlight on dark brown */
+    --gold-light: #f6ede3;  /* pale backgrounds */
   }
   .header { border-top: 4px solid var(--gold); }
   .badge-proxy { background: var(--gold-light); color: var(--gold-dark); }

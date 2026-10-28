@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ISO 24027 Metric Plan</title>
+<title>Metric Plan — Standards-Based Bias &amp; Fairness Toolkit</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
   <div class="header-top">
     <div>
       <div class="header-badges">
-        <span class="badge badge-iso">ISO/IEC 24027:2021</span>
+        <span class="badge badge-iso">ISO/IEC TR 24027 §7 · 42005</span>
         <span class="badge badge-proxy">Metric Plan</span>
       </div>
       <h1>Metric Plan — from confirmed bias to metric</h1>
@@ -55,7 +55,7 @@
 
   <!-- CONTEXT -->
   <div class="panel">
-    <h2><span class="stage">Context</span>Law, domain, stakes</h2>
+    <h2><span class="stage">Context</span>Domain, law, affected groups</h2>
     <div class="lead">Context decides which metric fits (step 1) and how results are judged (step 3). It is recorded with the plan; if any of it changes, return here and re-assess.</div>
     <div class="form-grid">
       <div class="form-field"><label>Domain / use</label>
@@ -64,7 +64,23 @@
         <input type="text" id="x-law" placeholder="e.g. PDPA 2562; hospital policy" onchange="setCtx('law', this.value)"></div>
       <div class="form-field"><label>Model version assessed</label>
         <input type="text" id="x-model" placeholder="e.g. Gymbot 2.3" onchange="setCtx('modelVersion', this.value)"></div>
-      <div class="form-field" style="grid-column: span 3"><label>Stakes — who is harmed by which error?</label>
+      <div class="form-field"><label>Model date / API version date</label>
+        <input type="text" id="x-mdate" placeholder="e.g. 2026-10-28" onchange="setCtx('modelDate', this.value)"></div>
+      <div class="form-field"><label>What does the API (or system) return?</label>
+        <select id="x-api" onchange="setCtx('apiResponse', this.value)">
+          <option value="">— select —</option>
+          <option value="score">Raw score (decision rule can be applied)</option>
+          <option value="flag">Flag / decision only</option>
+          <option value="other">Other (describe in notes)</option>
+        </select></div>
+      <div class="form-field"><label>Who takes part?</label>
+        <select id="x-parties" onchange="setCtx('parties', this.value)">
+          <option value="">— select —</option>
+          <option value="both">API provider and consumer</option>
+          <option value="consumer">API consumer only (e.g. third-party LLM)</option>
+          <option value="inhouse">In-house system (one team)</option>
+        </select></div>
+      <div class="form-field" style="grid-column: span 3"><label>Affected groups — who is affected, and who is harmed by which error? (cf. ISO/IEC 42005)</label>
         <input type="text" id="x-stakes" placeholder="e.g. missing a high-risk user (FN) can lead to a fall; over-flagging (FP) costs therapist time" onchange="setCtx('stakes', this.value)"></div>
     </div>
   </div>
@@ -141,13 +157,13 @@
 
 </div>
 
-<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). ISO 24027 Bias Detection Framework · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
+<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). Standards-Based Bias &amp; Fairness Toolkit · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
 
 <script src="bias-data.js"></script>
 <script>
 // ─── STATE ──────────────────────────────────────────────────────────
 const DEFAULT_PLAN = {
-  context: { domain:'', law:'', stakes:'', modelVersion:'' },
+  context: { domain:'', law:'', stakes:'', modelVersion:'', modelDate:'', apiResponse:'', parties:'' },
   data: { groups:'sex, site', excluded:'participant_id', minN:30, rawScore:true, outCol:'gymbot_score',
           reference:'proxy',
           proxy: { c1:{ col:'age', op:'>=', val:'65' }, c2:{ col:'bodyRatio', op:'<', val:'0.6' } },
@@ -267,7 +283,7 @@ function cardHtml(item) {
           <div class="plan-card-title">${esc(BIAS_NAME(item))}</div>
           <div class="plan-card-ev">${evidence ? 'Evidence: ' + esc(evidence) : 'No evidence recorded in the checklist'}</div>
         </div>
-        <span class="clause-tag tag-${id[0]}">${item.clause}</span>
+        <span class="clause-tag tag-${id[0]}">${SRC(item)}</span>
       </div>
       <div class="ctrl-row"><span class="ctrl-lbl">Measurable?</span><div class="seg">${seg}</div></div>
       ${sug.process && !p.measurable ? `<div class="hint">Usually a process finding: this bias sits in people or requirements, not in the outputs.</div>` : ''}`;
@@ -321,10 +337,13 @@ function usedSubgroups() {
 
 function renderContext() {
   const x = plan.context;
-  document.getElementById('x-domain').value = x.domain;
-  document.getElementById('x-law').value = x.law;
-  document.getElementById('x-model').value = x.modelVersion;
-  document.getElementById('x-stakes').value = x.stakes;
+  document.getElementById('x-domain').value = x.domain || '';
+  document.getElementById('x-law').value = x.law || '';
+  document.getElementById('x-model').value = x.modelVersion || '';
+  document.getElementById('x-mdate').value = x.modelDate || '';
+  document.getElementById('x-api').value = x.apiResponse || '';
+  document.getElementById('x-parties').value = x.parties || '';
+  document.getElementById('x-stakes').value = x.stakes || '';
 }
 function renderCustom() {
   const c = plan.custom, d = plan.data;
@@ -387,8 +406,9 @@ function renderSummary() {
   if (noWhy.length) warnings.push(`Add a rationale for: ${noWhy.map(i=>i.clause).join(', ')}.`);
   const missingRef = usedSubgroups().filter(s => !plan.custom.refGroups[s]);
   if (missingRef.length) warnings.push(`Set a reference group for: ${missingRef.join(', ')}.`);
-  if (!plan.context.domain || !plan.context.stakes) warnings.push('Fill in the context (at least domain and stakes) — the verdict step relies on it.');
+  if (!plan.context.domain || !plan.context.stakes) warnings.push('Fill in the context (at least domain and affected groups) — the verdict step relies on it.');
   if (!plan.context.modelVersion) warnings.push('Record the model version, so a later version triggers re-assessment.');
+  if (plan.context.apiResponse === 'flag' && plan.data.rawScore) warnings.push('Context says the API returns a flag only, but the data are set to a raw score — check the output column.');
   if (!plan.locked) warnings.push('Lock the plan before uploading data to the Magnitude page.');
   if (warnings.length) h += `<div style="margin-top:12px" class="report-items">` + warnings.map((w,i) => row('s-unk', String(i+1), w)).join('') + `</div>`;
   else h += `<div class="verdict-box v-green" style="margin-top:12px">Plan complete and locked. Ready for the Magnitude page.</div>`;
@@ -490,7 +510,10 @@ function exportCSV() {
     'Locked,' + (p.locked ? 'Yes (' + p.lockedAt + ')' : 'No'),
     'Domain,' + csvCell(p.context.domain),
     'Law / policy,' + csvCell(p.context.law),
-    'Stakes,' + csvCell(p.context.stakes),
+    'Affected groups,' + csvCell(p.context.stakes),
+    'API response,' + csvCell(p.context.apiResponse || ''),
+    'Parties,' + csvCell(p.context.parties || ''),
+    'Model date,' + csvCell(p.context.modelDate || ''),
     'Model version,' + csvCell(p.context.modelVersion),
     'Reference label,' + csvCell(p.referenceDescription),
     'Decision rule,' + csvCell(p.decisionRule), '',

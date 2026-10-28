@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ISO 24027 Bias Detection Checklist</title>
+<title>Bias Checklist — Standards-Based Bias &amp; Fairness Toolkit</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,8 +12,8 @@
   <div class="header-top">
     <div>
       <div class="header-badges">
-        <span class="badge badge-iso">ISO/IEC 24027:2021</span>
-        <span class="badge badge-proxy">Bias Detection Checklist</span>
+        <span class="badge badge-iso">ISO/IEC TR 24027 · TS 12791 · 5259-2</span>
+        <span class="badge badge-proxy">Stage B · Checklist</span>
       </div>
       <h1>Bias Audit — Process Checklist</h1>
       <p>CareMove / HarmonicAI Use Case · Singjai A., CMU Software Engineering · 2026</p>
@@ -58,7 +58,8 @@
   <div class="howto">
     <strong>Stage B — confirm the bias list.</strong> Every question asks whether a bias is present in this system. Answer
     <strong>Confirmed</strong> (yes, there is evidence it is present), <strong>Not present</strong> (there is evidence it is not) or
-    <strong>Unknown</strong> (it has not been checked, there is no information, or you have no authority to answer). Add evidence for every status. Confirmed biases move on to the <a href="metric-plan.html">Metric plan</a>, where you decide which ones can be measured and how.
+    <strong>Unknown</strong> (it has not been checked, there is no information, or you have no authority to answer). Add evidence for every status. Confirmed biases move on to the <a href="metric-plan.html">Metric plan</a>, where you decide which ones can be measured and how.<br><br>
+    <strong>Who answers?</strong> The checklist is general; each item is answered by whoever has the authority to know — the API provider (e.g. training data, model design) or the API consumer (e.g. use in context). If the provider cannot take part (e.g. a third-party LLM), cite public documentation such as model or system cards as evidence, or mark the item <strong>Unknown — no authority</strong>. The tag on each item shows the standard and clause it comes from.
   </div>
 
   <div class="summary">
@@ -110,12 +111,12 @@
 
 </div>
 
-<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). ISO 24027 Bias Detection Framework · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
+<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). Standards-Based Bias &amp; Fairness Toolkit · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
 
 <!-- REPORT MODAL -->
 <div class="modal-bg" id="modal" style="display:none" onclick="if(event.target===this)closeReport()">
   <div class="modal" id="report-content">
-    <h2>ISO 24027 Bias Audit Report — Stage B</h2>
+    <h2>Bias Audit Report — Stage B</h2>
     <div class="meta" id="report-meta"></div>
 
     <div class="report-section">
@@ -205,7 +206,7 @@ function itemHtml(item, cat) {
                     oninput="saveNote('${id}')">${esc(state.notes[id] || '')}</textarea>
         </div>
       </div>
-      <span class="clause-tag tag-${cat}">${item.clause}</span>
+      <span class="clause-tag tag-${cat}">${SRC(item)}</span>
     </div>`;
 }
 function renderItems(cat) { document.getElementById('cat-' + cat + '-items').innerHTML = ITEMS[cat].map(i => itemHtml(i, cat)).join(''); }
@@ -278,11 +279,11 @@ function showReport() {
   if (open) { vb.className = 'verdict-box v-amber'; vb.textContent = `${ca.answered}/${all.length} clauses answered. Answer the remaining ${open} before finalising the bias list.`; }
   else { vb.className = 'verdict-box v-green'; vb.textContent = `All ${all.length} clauses answered: ${ca.confirmed} confirmed, ${ca.not_present} not present, ${ca.unknown} unknown. Continue with the ${ca.confirmed} confirmed clause(s) in the Metric plan.`; }
 
-  section('confirmed', all.filter(i => state.status[i.id]==='confirmed').map(i => row('s-miss','CONFIRMED',`<strong style="font-size:12px">${i.clause}</strong> — ${esc(BIAS_NAME(i))}${ev(i.id)}`)).join(''));
+  section('confirmed', all.filter(i => state.status[i.id]==='confirmed').map(i => row('s-miss','CONFIRMED',`<strong style="font-size:12px">${SRC(i)}</strong> — ${esc(BIAS_NAME(i))}${ev(i.id)}`)).join(''));
   section('unknown', all.filter(i => state.status[i.id]==='unknown').map(i => row('s-unk','UNKNOWN',
-    `<strong style="font-size:12px">${i.clause}</strong> — ${esc(BIAS_NAME(i))}<br><span style="font-size:11px">Reason: ${state.unkReason[i.id] ? UNK_REASON[state.unkReason[i.id]] : '<span style="color:var(--red)">not given</span>'}</span>${ev(i.id)}`)).join(''));
-  section('np', all.filter(i => state.status[i.id]==='not_present').map(i => row('s-done','NOT PRESENT',`<strong style="font-size:12px">${i.clause}</strong> — ${esc(BIAS_NAME(i))}${ev(i.id)}`)).join(''));
-  section('open', all.filter(i => !state.status[i.id]).map(i => row('s-miss','OPEN',`<strong style="font-size:12px">${i.clause}</strong> — ${i.q}`)).join(''));
+    `<strong style="font-size:12px">${SRC(i)}</strong> — ${esc(BIAS_NAME(i))}<br><span style="font-size:11px">Reason: ${state.unkReason[i.id] ? UNK_REASON[state.unkReason[i.id]] : '<span style="color:var(--red)">not given</span>'}</span>${ev(i.id)}`)).join(''));
+  section('np', all.filter(i => state.status[i.id]==='not_present').map(i => row('s-done','NOT PRESENT',`<strong style="font-size:12px">${SRC(i)}</strong> — ${esc(BIAS_NAME(i))}${ev(i.id)}`)).join(''));
+  section('open', all.filter(i => !state.status[i.id]).map(i => row('s-miss','OPEN',`<strong style="font-size:12px">${SRC(i)}</strong> — ${i.q}`)).join(''));
 
   const ready = (id, label, why) => {
     const s = state.status[id];
@@ -311,12 +312,12 @@ function closeReport() { document.getElementById('modal').style.display = 'none'
 function exportCSV() {
   const date = document.getElementById('audit-date').value || new Date().toISOString().slice(0,10);
   const lines = [
-    'ISO 24027 Bias Audit — Stage B export',
+    TOOL_NAME + ' — Stage B export',
     'System,' + csvCell(document.getElementById('sys-name').value),
     'Auditor,' + csvCell(document.getElementById('auditor').value),
     'Date,' + date, '',
-    'Clause,Category,Bias,Question,Bias status,Unknown reason,Evidence/Note',
-    ...ALL_ITEMS().map(i => [i.clause, i.id[0].toUpperCase(), csvCell(BIAS_NAME(i)), csvCell(i.q),
+    'Source,Category,Bias,Question,Bias status,Unknown reason,Evidence/Note',
+    ...ALL_ITEMS().map(i => [csvCell(SRC(i)), i.id[0].toUpperCase(), csvCell(BIAS_NAME(i)), csvCell(i.q),
       state.status[i.id] ? STATUS[state.status[i.id]] : 'Unanswered',
       state.unkReason[i.id] ? UNK_REASON[state.unkReason[i.id]] : '',
       csvCell(state.notes[i.id] || '')].join(','))

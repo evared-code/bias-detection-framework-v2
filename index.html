@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ISO 24027 Bias Detection Framework — HarmonicAI</title>
+<title>Standards-Based Bias &amp; Fairness Toolkit — HarmonicAI</title>
 <style>
   :root {
     --bg:#fafaf8;--surface:#fff;--surface2:#f4f3ef;--border:#e2e0d8;
     --text:#1a1a18;--text2:#5a5a54;--text3:#8a8a82;
-    --gold:#c9a227;--gold-deep:#8a6d1b;--gold-dark:#6b5415;--gold-bright:#f2d16b;--gold-light:#fbf5e4;
+    --gold:#a0714c;--gold-deep:#7a5134;--gold-dark:#563823;--gold-bright:#e8c9a2;--gold-light:#f6ede3; /* brown theme */
     --purple:#3c3489;--purple-light:#eeedfe;--purple-mid:#534ab7;
     --teal:#0f6e56;--teal-light:#e1f5ee;
     --coral:#712b13;--coral-light:#faece7;
@@ -142,8 +142,8 @@
   <div class="nav-brand">
     <div class="nav-logo">H</div>
     <div>
-      <div class="nav-title">HarmonicAI Bias Detection Framework</div>
-      <div class="nav-sub">ISO/IEC 24027:2021 · CMU Software Engineering · 2026</div>
+      <div class="nav-title">Standards-Based Bias &amp; Fairness Toolkit</div>
+      <div class="nav-sub">ISO/IEC TR 24027 · TS 12791 · 5259-2 · CMU Software Engineering · 2026</div>
     </div>
   </div>
   <div class="nav-links">
@@ -157,13 +157,13 @@
 <div class="hero">
   <div class="hero-badge">HarmonicAI · Use Case 3 · Thailand</div>
   <h1>Bias was never written<br>as a <span>requirement</span></h1>
-  <p>Not because anyone decided against it — but because nobody thought to include it. This toolkit helps development teams detect it systematically.</p>
+  <p>Not because anyone decided against it — but because nobody thought to include it. This toolkit derives what to look for from ISO/IEC standards, measures bias from case data, and leaves the fairness verdict to the domain expert, in context.</p>
   <div class="hero-tools">
     <a class="tool-card" href="checklist.html">
       <div class="tool-step">Step 1 · Stage B</div>
       <div class="tool-icon ic-a">&#9745;</div>
       <h3>Bias Checklist</h3>
-      <p>Confirm each of the 23 ISO 24027 §6.2–§6.4 clauses: confirmed, not present or unknown — with evidence.</p>
+      <p>A general checklist from ISO/IEC standards. Each item is answered by whoever has the authority to know — API provider or consumer — with evidence.</p>
       <div class="tool-arrow">Open checklist →</div>
     </a>
     <a class="tool-card" href="metric-plan.html">
@@ -184,7 +184,7 @@
       <div class="tool-step">Step 4 · Stage G</div>
       <div class="tool-icon ic-d">&#9878;</div>
       <h3>Verdict</h3>
-      <p>The domain expert sets tolerances first, then judges whether each measured gap is unwanted in context.</p>
+      <p>The domain expert sets tolerances first, then judges whether each result is fair or unfair in context.</p>
       <div class="tool-arrow">Open verdict →</div>
     </a>
   </div>
@@ -197,7 +197,7 @@
     <h2>Fairness is the most under-addressed dimension in AI development</h2>
     <p>Multiple lines of evidence converge on the same finding: fairness is consistently deprioritised across the AI development lifecycle — by practitioners, by researchers, and by the systems they build.</p>
     <div class="stat-row">
-      <div class="sc"><div class="sn" style="color:var(--red)">73%</div><div class="sl">of analysed API practitioner discourse lacked substantive discussion of fairness as a non-functional requirement</div><div class="ss">Singjai, A. (2026) — Information 17(3), 304</div></div>
+      <div class="sc"><div class="sn" style="color:var(--red)">73%</div><div class="sl">of 22 practitioner presentations on trustworthy APIs (16) gave no substantive discussion of fairness</div><div class="ss">Singjai, A. (2026) — Information 17(3), 304</div></div>
       <div class="sc"><div class="sn" style="color:var(--amber)">40%</div><div class="sl">coverage of the Safety &amp; Risk Mitigation dimension in XAI research — the lowest of any dimension</div><div class="ss">Singjai &amp; Sureephong (2026) — ICCAE 2026</div></div>
       <div class="sc"><div class="sn" style="color:var(--amber)">69%</div><div class="sl">average bias detection coverage in XAI literature vs 100% among ethics &amp; governance sources</div><div class="ss">Singjai &amp; Sureephong (2026) — ICCAE 2026</div></div>
     </div>
@@ -208,18 +208,12 @@
   <hr>
 
   <div class="sec">
-    <div class="sec-lbl">The research question</div>
-    <h2>Given we know bias exists and practitioners ignore it — how do you actually detect it systematically?</h2>
-    <p>Two approaches exist. Only one is feasible without full clinical data access:</p>
-    <div class="two-col">
-      <div class="ap struck">
-        <h4><span class="badge-no">Not used</span> Technical detection</h4>
-        <p>Automated metric computation applied to a deployed model. Requires independently validated clinical labels and subgroup data. Ground truth is not available in the CareMove/Gymbot dataset.</p>
-      </div>
-      <div class="ap">
-        <h4><span class="badge-yes">This toolkit</span> Process/audit framework</h4>
-        <p>A structured checklist guiding teams through ISO 24027 clause-by-clause. Works at requirements and design stage. No clinical labels needed for the checklist. Proxy metrics extend this using available Gymbot data.</p>
-      </div>
+    <div class="sec-lbl">Research questions</div>
+    <h2>What to look for, how to measure it, and who decides whether it is fair</h2>
+    <div class="ml">
+      <div class="mi"><span class="mc">RQ1</span><div class="mb"><div class="mn">How can ISO/IEC standards on AI bias be combined to determine what bias to look for and how to measure it?</div><div class="md">Hybrid deductive–inductive coding of TR 24027, TS 12791 and 5259-2 → the checklist, and a map of which standard informs which step.</div></div></div>
+      <div class="mi"><span class="mc">RQ2</span><div class="mb"><div class="mn">How can bias detection be separated from fairness judgement?</div><div class="md">Magnitude comes from case data; the verdict comes from context. Metric and tolerance are fixed before results are seen.</div></div></div>
+      <div class="mi"><span class="mc">RQ3</span><div class="mb"><div class="mn">What must a case provide for detection to reach a fairness verdict?</div><div class="md">Minimum case inputs — shown on the Magnitude page for every case you load.</div></div></div>
     </div>
   </div>
 
@@ -227,20 +221,33 @@
 
   <div class="sec">
     <div class="sec-lbl">The framework</div>
-    <h2>ISO/IEC 24027:2021 — three clause groups → three checklists → five metrics</h2>
-    <p>ISO/IEC TR 24027:2021 defines bias and fairness for AI systems across three domains. This toolkit operationalises those clauses into a four-step auditable workflow that keeps measurement (magnitude) separate from judgement (verdict).</p>
+    <h2>From ISO/IEC standards to a fairness verdict</h2>
+    <p>ISO/IEC TR 24027 is informative: it lists sources of bias (§6) and metrics (§7) but gives no procedure. The researcher interprets it, together with TS 12791 and 5259-2, by hybrid deductive–inductive coding (step A). The four pages below then keep measurement (magnitude) separate from judgement (verdict).</p>
     <div class="flow">
+      <div class="fs"><div class="fn">A</div><div class="ft">Interpret standards</div><div class="fb">Researcher · hybrid coding</div></div>
       <a class="fs" href="checklist.html"><div class="fn">1 · B</div><div class="ft">Checklist</div><div class="fb">Confirm the bias list</div></a>
       <a class="fs" href="metric-plan.html"><div class="fn">2 · C–E</div><div class="ft">Metric plan</div><div class="fb">Measurable? → metric · lock</div></a>
       <a class="fs" href="magnitude.html"><div class="fn">3 · F</div><div class="ft">Magnitude</div><div class="fb">Size of bias · n · CI</div></a>
-      <a class="fs" href="verdict.html"><div class="fn">4 · G</div><div class="ft">Verdict</div><div class="fb">Unwanted in context?</div></a>
+      <a class="fs" href="verdict.html"><div class="fn">4 · G</div><div class="ft">Verdict</div><div class="fb">Fair in context?</div></a>
     </div>
     <div style="margin:22px 0;text-align:center">
-      <img src="framework.png" alt="The ISO 24027 Bias Detection Framework — three categories (Human Cognitive Biases, Data Biases, Engineering Decision Biases) converging into 5 Fairness Metrics, with 23 checkpoints across 3 systemic categories" style="max-width:100%;border-radius:var(--r);border:1px solid var(--border)">
+      <img src="framework.png" alt="Conceptual framework: sources of bias, case data, choose metric, measure magnitude, give verdict; outcomes justified disparity, unwanted bias, no concern found, hidden unfairness, or indeterminate" style="max-width:100%;border-radius:var(--r);border:1px solid var(--border);background:#fff;padding:10px">
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">Conceptual framework. Magnitude sets the row; the verdict sets the column. Context enters at metric choice and verdict, never at measurement.</div>
+    </div>
+    <div style="margin:22px 0;text-align:center">
+      <img src="methodology.png" alt="Swim lane: researcher, development team (API provider / consumer) and domain expert, stages A to G with the ISO/IEC document used at each step" style="max-width:100%;border-radius:var(--r);border:1px solid var(--border);background:#fff;padding:10px">
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">Who does what. Read top to bottom; steps on the same row can run in parallel.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-top:14px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Which ISO/IEC document informs which step</div>
+      <div class="cat-row"><span class="cpill pa">A</span><span class="cd">TR 24027 §6 (initial codebook) · TS 12791 · 5259-2 — coded into the checklist</span><span class="cc">Interpret</span></div>
+      <div class="cat-row"><span class="cpill pb">D–F</span><span class="cd">TR 24027 §7 metrics · TS 12791 · 42005 (affected groups and context)</span><span class="cc">Metric plan, magnitude</span></div>
+      <div class="cat-row"><span class="cpill pc">G</span><span class="cd">23894 (risk criteria for tolerance) · TR 24368 (ethical and societal reasons)</span><span class="cc">Verdict</span></div>
+      <div class="cat-row"><span class="cpill pa">all</span><span class="cd">22989 terminology · 42001 and NIST AI RMF for organisational roles (not used within the steps)</span><span class="cc">Background</span></div>
     </div>
     <p style="font-size:11px;color:var(--text3)">§6.3.10 and §7.7 excluded — content paywalled. §5.2–5.3 used as conceptual framing only.</p>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-top:14px">
-      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Checklist categories</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Checklist categories (TR 24027 §6; items from TS 12791 and 5259-2 will be added after coding, each tagged with its source)</div>
       <div class="cat-row"><span class="cpill pa">A</span><span class="cd">Process &amp; human cognitive bias — automation bias, group attribution, implicit bias, confirmation bias, requirements bias + 4 more</span><span class="cc">9 items</span></div>
       <div class="cat-row"><span class="cpill pb">B</span><span class="cd">Data bias — statistical bias, non-representative sampling, missing features, Simpson's paradox, data aggregation + 3 more</span><span class="cc">8 items</span></div>
       <div class="cat-row"><span class="cpill pc">C</span><span class="cd">Engineering decision bias — feature engineering, algorithm selection, hyperparameter tuning, proxy discrimination, model bias, model interaction</span><span class="cc">6 items</span></div>
@@ -278,13 +285,14 @@
     <h2>GitHub file structure</h2>
     <p>All files below should be in the root of your GitHub repository. Deploy via GitHub Pages (Settings → Pages → main branch / root). Your own CareMove data should follow the same 6-column format as <code>example_data.csv</code>. Data are processed in the browser only; nothing is uploaded.</p>
     <div class="file-grid">
-      <a class="fc" href="checklist.html"><div class="fi">&#9745;</div><div><div class="fname">checklist.html</div><div class="fdesc">Step 1 · Confirm the 23 ISO 24027 §6 clauses (confirmed / not present / unknown) with evidence.</div></div></a>
+      <a class="fc" href="checklist.html"><div class="fi">&#9745;</div><div><div class="fname">checklist.html</div><div class="fdesc">Step 1 · Confirm each checklist item (confirmed / not present / unknown) with evidence and source clause.</div></div></a>
       <a class="fc" href="metric-plan.html"><div class="fi">&#9881;</div><div><div class="fname">metric-plan.html</div><div class="fdesc">Step 2 · Context, measurability, §7 metric, subgroup and rules — locked before results.</div></div></a>
-      <a class="fc" href="magnitude.html"><div class="fi">&#128202;</div><div><div class="fname">magnitude.html</div><div class="fdesc">Step 3 · Upload CSV → gap, ratio, n and bootstrap 95% CI per subgroup.</div></div></a>
+      <a class="fc" href="magnitude.html"><div class="fi">&#128202;</div><div><div class="fname">magnitude.html</div><div class="fdesc">Step 3 · Upload CSV → minimum case inputs, then gap, ratio, n and bootstrap 95% CI per subgroup.</div></div></a>
       <a class="fc" href="verdict.html"><div class="fi">&#9878;</div><div><div class="fname">verdict.html</div><div class="fdesc">Step 4 · Tolerances first, then the expert's verdict and the outcome grid.</div></div></a>
       <a class="fc" href="bias-data.js"><div class="fi">&#128221;</div><div><div class="fname">bias-data.js · style.css</div><div class="fdesc">Shared clause list, metric definitions and styling used by all four steps.</div></div></a>
       <a class="fc" href="example_data.csv"><div class="fi">&#128196;</div><div><div class="fname">example_data.csv</div><div class="fdesc">60-participant sample (participant_id · age · sex · site · bodyRatio · gymbot_score).</div></div></a>
       <a class="fc" href="synthetic_test_data.csv"><div class="fi">&#129514;</div><div><div class="fname">synthetic_test_data.csv</div><div class="fdesc">240-row synthetic test set with a known sex bias, for checking the tool.</div></div></a>
+      <a class="fc" href="framework.png"><div class="fi">&#128444;</div><div><div class="fname">framework.png · methodology.png</div><div class="fdesc">Conceptual framework and swim lane, as in the paper.</div></div></a>
       <a class="fc" href="index.html"><div class="fi">&#127968;</div><div><div class="fname">index.html</div><div class="fdesc">This background page — framework overview and navigation hub.</div></div></a>
     </div>
   </div>
@@ -299,12 +307,14 @@
       <li><span class="rn">[2]</span>Suteeca, K., &amp; Singjai, A. (2025). Bias Assessment and Fairness Requirements Prioritization Framework for Educational AI Development Teams. <em>2025 6th TIMES-iCON</em> (pp. 1–5). IEEE.</li>
       <li><span class="rn">[3]</span>Singjai, A., &amp; Sureephong, P. (2026). Understanding XAI Research Landscape Through Analysis of Knowledge Gaps and Stakeholder Perspectives. <em>Proceedings of ICCAE 2026</em>, Sydney, Australia.</li>
       <li><span class="rn">[4]</span>Singjai, A. (2026). Deriving Empirically Grounded NFR Specifications from Practitioner Discourse. <em>Information, 17</em>(3), 304. <a href="https://doi.org/10.3390/info17030304" style="color:var(--blue)">doi:10.3390/info17030304</a></li>
-      <li><span class="rn">[5]</span>ISO/IEC TR 24027:2021. <em>Artificial intelligence — Bias in AI systems and AI aided decision making</em>. First edition, November 2021.</li>
+      <li><span class="rn">[5]</span>ISO/IEC TR 24027:2021. <em>Artificial intelligence — Bias in AI systems and AI aided decision making</em>.</li>
+      <li><span class="rn">[6]</span>ISO/IEC TS 12791:2024. <em>Artificial intelligence — Treatment of unwanted bias in classification and regression machine learning tasks</em>.</li>
+      <li><span class="rn">[7]</span>ISO/IEC 5259-2:2024. <em>Artificial intelligence — Data quality for analytics and machine learning — Part 2: Data quality measures</em>.</li>
     </ul>
   </div>
 
   <div style="text-align:center;padding:20px 0;font-size:11px;color:var(--text3)">
-    Singjai, A. (2026). ISO 24027 Bias Detection Framework · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117
+    Singjai, A. (2026). Standards-Based Bias &amp; Fairness Toolkit · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117
   </div>
 
 </div>

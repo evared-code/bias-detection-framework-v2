@@ -1,5 +1,8 @@
-// Shared data for checklist.html and metric-plan.html
-// ISO/IEC TR 24027 (applied): §6 bias sources and §7 metrics.
+// Shared data for all pages of the Standards-Based Bias & Fairness Toolkit.
+// Checklist items: ISO/IEC TR 24027 §6 (applied). Items derived from ISO/IEC TS 12791
+// and ISO/IEC 5259-2 by hybrid coding can be added with a `doc` field, e.g.
+//   { id:'b9', doc:'TS 12791', clause:'§x.y', q:'...', sub:'Name — description' }
+// Metrics: ISO/IEC TR 24027 §7.
 
 const ITEMS = {
   a: [
@@ -32,6 +35,9 @@ const ITEMS = {
     { id:'c6', clause:'§6.4.7', q:'Where several models interact in a pipeline, does the combined output treat subgroups differently?', sub:'Model interaction bias — individually fair models can compound into a systemically unfair pipeline.' },
   ]
 };
+const TOOL_NAME = 'Standards-Based Bias & Fairness Toolkit';
+// Source of a checklist item: standard + clause (default TR 24027)
+const SRC = item => (item.doc || 'TR 24027') + ' ' + item.clause;
 const ALL_ITEMS = () => [...ITEMS.a, ...ITEMS.b, ...ITEMS.c];
 const ITEM_BY_ID = id => ALL_ITEMS().find(i => i.id === id);
 const BIAS_NAME = item => item.sub.split(' — ')[0];
@@ -75,7 +81,7 @@ const SUGGEST = {
 };
 
 const STATUS = { confirmed:'Confirmed', not_present:'Not present', unknown:'Unknown' };
-const UNK_REASON = { no_info:'No information available', no_authority:'No authority to answer', not_investigated:'Not yet investigated' };
+const UNK_REASON = { no_info:'No information available', no_authority:'No authority to answer (e.g. API consumer cannot see training data)', not_investigated:'Not yet investigated' };
 
 // Storage keys shared across pages (same origin on GitHub Pages)
 const CHECKLIST_KEY = 'iso24027_checklist_v2';
