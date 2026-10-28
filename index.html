@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Standards-Based Bias &amp; Fairness Toolkit — HarmonicAI</title>
+<title>Standards-Based Bias &amp; Fairness Toolkit (v2)</title>
 <style>
   :root {
     --bg:#fafaf8;--surface:#fff;--surface2:#f4f3ef;--border:#e2e0d8;
@@ -140,7 +140,7 @@
 
 <nav class="nav">
   <div class="nav-brand">
-    <div class="nav-logo">H</div>
+    <div class="nav-logo">B</div>
     <div>
       <div class="nav-title">Standards-Based Bias &amp; Fairness Toolkit</div>
       <div class="nav-sub">ISO/IEC TR 24027 · TS 12791 · 5259-2 · CMU Software Engineering · 2026</div>
@@ -155,7 +155,7 @@
 </nav>
 
 <div class="hero">
-  <div class="hero-badge">HarmonicAI · Use Case 3 · Thailand</div>
+  <div class="hero-badge">Case-agnostic · v2</div>
   <h1>Bias was never written<br>as a <span>requirement</span></h1>
   <p>Not because anyone decided against it — but because nobody thought to include it. This toolkit derives what to look for from ISO/IEC standards, measures bias from case data, and leaves the fairness verdict to the domain expert, in context.</p>
   <div class="hero-tools">
@@ -245,7 +245,14 @@
       <div class="cat-row"><span class="cpill pc">G</span><span class="cd">23894 (risk criteria for tolerance) · TR 24368 (ethical and societal reasons)</span><span class="cc">Verdict</span></div>
       <div class="cat-row"><span class="cpill pa">all</span><span class="cd">22989 terminology · 42001 and NIST AI RMF for organisational roles (not used within the steps)</span><span class="cc">Background</span></div>
     </div>
-    <p style="font-size:11px;color:var(--text3)">§6.3.10 and §7.7 excluded — content paywalled. §5.2–5.3 used as conceptual framing only.</p>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-top:14px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px">What case data the toolkit accepts</div>
+      <div class="cd" style="margin-bottom:6px">Any AI-aided decision system with one row per decision, following the classification and regression scope of ISO/IEC TS 12791. The §7 metrics compare rates of a two-way decision, so the output column is turned into positive / negative:</div>
+      <div class="cat-row"><span class="cpill pb">Numeric</span><span class="cd">Score, probability, rank or continuous value (regression) + a threshold, e.g. <code>score &lt; 60</code>, <code>rank &lt;= 10</code>, <code>amount &gt;= 50000</code></span><span class="cc">supported</span></div>
+      <div class="cat-row"><span class="cpill pb">Decision</span><span class="cd">Decision or category + the value(s) that count as positive, e.g. <code>approved</code> or <code>high, medium</code></span><span class="cc">supported</span></div>
+      <div class="cat-row"><span class="cpill pc">Not yet</span><span class="cd">Regression-specific metrics (e.g. difference in mean output or mean error) — planned after coding TS 12791; free text from an LLM must first be turned into a decision</span><span class="cc">out of scope</span></div>
+    </div>
+    <p style="font-size:11px;color:var(--text3);margin-top:10px">§6.3.10 and §7.7 excluded — content paywalled. §5.2–5.3 used as conceptual framing only.</p>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-top:14px">
       <div style="font-size:13px;font-weight:600;margin-bottom:10px">Checklist categories (TR 24027 §6; items from TS 12791 and 5259-2 will be added after coding, each tagged with its source)</div>
       <div class="cat-row"><span class="cpill pa">A</span><span class="cd">Process &amp; human cognitive bias — automation bias, group attribution, implicit bias, confirmation bias, requirements bias + 4 more</span><span class="cc">9 items</span></div>
@@ -256,7 +263,7 @@
       <div style="font-size:13px;font-weight:600">Fairness metrics (§7)</div>
       <div class="mi"><span class="mc">§7.2</span><div class="mb"><div class="mn">Confusion matrix per group</div><div class="md">TP/FP/FN/TN breakdown for each subgroup — foundation for all other metrics</div></div></div>
       <div class="mi"><span class="mc">§7.3</span><div class="mb"><div class="mn">Equalized odds</div><div class="md">TPR and FPR must both be equal across groups</div></div></div>
-      <div class="mi"><span class="mc">§7.4</span><div class="mb"><div class="mn">Equality of opportunity</div><div class="md">High-risk users identified at equal rates regardless of group</div></div></div>
+      <div class="mi"><span class="mc">§7.4</span><div class="mb"><div class="mn">Equality of opportunity</div><div class="md">True positives identified at equal rates regardless of group</div></div></div>
       <div class="mi"><span class="mc">§7.5</span><div class="mb"><div class="mn">Demographic parity</div><div class="md">Positive outcome rate independent of group — fully computable without ground truth</div></div></div>
       <div class="mi"><span class="mc">§7.6</span><div class="mb"><div class="mn">Predictive equality</div><div class="md">Equal false positive rate — no group disproportionately over-flagged</div></div></div>
     </div>
@@ -265,14 +272,15 @@
   <hr>
 
   <div class="sec">
-    <div class="sec-lbl">Data context</div>
-    <h2>Why a proxy approach — and what it means for results</h2>
-    <p>The CareMove/Gymbot dataset records AI scores and user exercise behaviour but contains no PT-assessed clinical risk labels. Without ground truth, four of the five metrics cannot be computed directly. Only §7.5 demographic parity is fully computable from raw data.</p>
+    <div class="sec-lbl">Sample case data</div>
+    <h2>Example: exercise-risk scoring (CareMove sample) — why a proxy, and what it means</h2>
+    <p>The toolkit is case-agnostic: any AI-aided decision system with one row per decision can be assessed. The sample files show one such case.</p>
+    <p>In this sample, the dataset records AI scores and user exercise behaviour but contains no PT-assessed clinical risk labels. Without ground truth, four of the five metrics cannot be computed directly. Only §7.5 demographic parity is fully computable from raw data.</p>
     <p>To provide directional findings for all five metrics, this toolkit uses a researcher-constructed proxy label derived from TILDA (Irish Longitudinal Study on Ageing) fall prediction findings:</p>
     <div class="proxy-box">
       <h4>Proxy ground truth rule</h4>
       <div class="pf">proxy_risk = 1 &nbsp;IF&nbsp; age &ge; AGE_THRESHOLD &nbsp;AND&nbsp; bodyRatio &lt; BODY_THRESHOLD<br>model_flag = 1 &nbsp;IF&nbsp; gymbot_score &lt; SCORE_THRESHOLD</div>
-      <p style="font-size:12px;color:var(--text2)">Thresholds are set and locked in the Metric plan. Default: age &ge; 65 (WHO elderly), bodyRatio &lt; 0.6 (below 60% movement quality, analogous to below-threshold grip strength in TILDA), gymbot_score &lt; 60.</p>
+      <p style="font-size:12px;color:var(--text2)">Thresholds are set and locked in the Metric plan. In the sample settings (<em>Load sample case</em> on the Metric plan page): age &ge; 65 (WHO elderly), bodyRatio &lt; 0.6 (below 60% movement quality, analogous to below-threshold grip strength in TILDA), gymbot_score &lt; 60.</p>
       <div class="pl">Limitation: This proxy has not been validated against PT clinical assessment. All findings are exploratory and directional only. Clinical validation is required before any deployment decision.</div>
     </div>
     <p>The proxy is a placeholder for ground truth. When validated labels become available (for example PT-assessed risk, minimum 30 sessions per subgroup), set the reference to <em>validated label column</em> in the Metric plan and recompute; nothing else in the workflow changes.</p>
@@ -283,7 +291,7 @@
   <div class="sec">
     <div class="sec-lbl">Repository files</div>
     <h2>GitHub file structure</h2>
-    <p>All files below should be in the root of your GitHub repository. Deploy via GitHub Pages (Settings → Pages → main branch / root). Your own CareMove data should follow the same 6-column format as <code>example_data.csv</code>. Data are processed in the browser only; nothing is uploaded.</p>
+    <p>All files below should be in the root of your GitHub repository. Deploy via GitHub Pages (Settings → Pages → main branch / root). Your own case data can use any column names; set them in the Metric plan (one row per decision, as in <code>example_data.csv</code>). Data are processed in the browser only; nothing is uploaded.</p>
     <div class="file-grid">
       <a class="fc" href="checklist.html"><div class="fi">&#9745;</div><div><div class="fname">checklist.html</div><div class="fdesc">Step 1 · Confirm each checklist item (confirmed / not present / unknown) with evidence and source clause.</div></div></a>
       <a class="fc" href="metric-plan.html"><div class="fi">&#9881;</div><div><div class="fname">metric-plan.html</div><div class="fdesc">Step 2 · Context, measurability, §7 metric, subgroup and rules — locked before results.</div></div></a>
@@ -314,7 +322,7 @@
   </div>
 
   <div style="text-align:center;padding:20px 0;font-size:11px;color:var(--text3)">
-    Singjai, A. (2026). Standards-Based Bias &amp; Fairness Toolkit · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117
+    Singjai, A. (2026). Standards-Based Bias &amp; Fairness Toolkit (v2) · CMU Software Engineering (CAMT), Chiang Mai University · https://evared-code.github.io/bias-detection-framework-v2/
   </div>
 
 </div>

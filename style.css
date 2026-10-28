@@ -227,3 +227,8 @@
   a { color: inherit; }
   .hint a, .lead a, .kv a, .empty a { color: var(--gold-dark); text-decoration: underline; }
   .site-foot { text-align: center; padding: 20px 0 0; font-size: 11px; color: var(--text3); }
+
+/* column chips (metric plan) */
+.colchip { font: inherit; font-size: 11px; padding: 1px 8px; margin: 2px 2px 0 0; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); cursor: pointer; }
+.colchip.on { background: var(--gold-deep); border-color: var(--gold-deep); color: #fff; }
+.colchip:hover:not(.on) { background: var(--gold-light); }

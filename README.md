@@ -1,8 +1,10 @@
-# Standards-Based Bias & Fairness Toolkit — HarmonicAI
+# Standards-Based Bias & Fairness Toolkit (v2)
 
 A browser-based toolkit that derives what bias to look for from ISO/IEC standards (TR 24027, with TS 12791 and 5259-2 by hybrid deductive–inductive coding), measures bias from case data, and keeps **measurement (magnitude)** separate from **judgement (verdict)**.
 
 Live site: https://evared-code.github.io/bias-detection-framework-v2/
+
+The toolkit is case-agnostic. The sample files (`example_data.csv`, `synthetic_test_data.csv`) come from one example case (exercise-risk scoring) and only illustrate the data format.
 
 ## Workflow
 
@@ -28,7 +30,7 @@ Indeterminate results (magnitude cannot be measured) are reported as findings in
 | `bias-data.js` | Shared clause list (§6), metric definitions (§7), storage helpers |
 | `style.css` | Shared styling for steps 1–4 |
 | `framework.png` · `methodology.png` | Conceptual framework and swim lane shown on `index.html` (same as the paper) |
-| `example_data.csv` | 60-participant CareMove sample |
+| `example_data.csv` | 60-row sample from an example case (exercise-risk scoring) |
 | `synthetic_test_data.csv` | 240-row synthetic set with a known sex bias, for checking the tool |
 | `.nojekyll` | Tells GitHub Pages to serve the files as they are |
 
@@ -44,16 +46,25 @@ No build step, server or external library is needed.
 
 ## Data format
 
-One row per decision. Column names are set in the Metric plan; the default matches `example_data.csv`:
+One row per decision, any domain. Column names are set in the Metric plan: use **Read columns from my CSV** to pick them from your file's header, or **Load sample case (CareMove)** to fill in the settings of the sample file:
 
 ```
 participant_id,age,sex,site,bodyRatio,gymbot_score
 P001,68,F,D01,0.52,55
 ```
 
-- Output: a raw score with a decision rule (default `gymbot_score < 60` = flagged), or a 0/1 flag column.
-- Reference: none, a proxy rule (default `age >= 65 AND bodyRatio < 0.6`), or a validated label column. The proxy is a placeholder: when validated labels exist, switch the reference to the label column and recompute.
+- Output: a raw score with a decision rule (sample: `gymbot_score < 60` = flagged), or a decision column with the value that counts as positive (e.g. `1`, `yes`, `approved`).
+- Reference: none, a proxy rule (sample: `age >= 65 AND bodyRatio < 0.6`), or a validated label column. The proxy is a placeholder: when validated labels exist, switch the reference to the label column and recompute.
 - Columns used to build the reference cannot be used as subgroups.
+
+### Supported outputs
+
+Following the classification and regression scope of ISO/IEC TS 12791, the output column is turned into a two-way decision, because the TR 24027 §7 metrics compare rates of positive / negative decisions:
+
+- **Numeric output + threshold**: score, probability, rank or continuous value (regression), e.g. `score < 60`, `rank <= 10`, `amount >= 50000`.
+- **Decision / category**: the value or values that count as positive, e.g. `approved`, or `high, medium`.
+
+Not yet supported: regression-specific metrics (e.g. difference in mean output or mean error), planned after coding TS 12791; free text from an LLM must first be turned into a decision.
 
 ## Data and privacy
 
@@ -76,4 +87,8 @@ checklist JSON → Metric plan → plan JSON → Magnitude and Verdict → magni
 
 ## Citation
 
-Singjai, A. (2026). Standards-Based Bias & Fairness Toolkit. CMU Software Engineering (CAMT), Chiang Mai University. HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117.
+Singjai, A. (2026). Standards-Based Bias & Fairness Toolkit (v2). CMU Software Engineering (CAMT), Chiang Mai University. https://evared-code.github.io/bias-detection-framework-v2/
+
+## Acknowledgement
+
+The sample case data come from the HarmonicAI project (EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117).

@@ -71,6 +71,8 @@
       Click to choose a CSV file, or drop it here
       <input type="file" accept=".csv,text/csv" style="display:none" onchange="readCSV(this.files[0])">
     </label>
+    <div style="margin-top:8px"><button type="button" class="btn btn-sm" onclick="useSample()">Use sample data (CareMove)</button>
+      <span class="hint" style="margin-left:6px">Needs the sample settings: <em>Load sample case</em> on the Metric plan page.</span></div>
     <div id="data-info" class="kv" style="margin-top:10px"></div>
   </div>
 
@@ -93,7 +95,7 @@
 
 </div>
 
-<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). Standards-Based Bias &amp; Fairness Toolkit · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
+<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). Standards-Based Bias &amp; Fairness Toolkit (v2) · CMU Software Engineering (CAMT), Chiang Mai University · https://evared-code.github.io/bias-detection-framework-v2/</div>
 
 <script src="bias-data.js"></script>
 <script>
@@ -145,6 +147,11 @@ function readCSV(file) {
   r.onload = () => { const p = parseCSV(r.result); rows = p.rows; rows._head = p.head; fileName = file.name; compute(); };
   r.readAsText(file);
 }
+function useSample() {
+  fetch('example_data.csv').then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+    .then(t => { const p = parseCSV(t); rows = p.rows; rows._head = p.head; fileName = 'example_data.csv (sample)'; compute(); })
+    .catch(() => alert('Could not load the sample file. Open the toolkit from its web address (not as a local file), or choose example_data.csv with the file button.'));
+}
 const drop = document.getElementById('drop');
 drop.addEventListener('dragover', e => { e.preventDefault(); });
 drop.addEventListener('drop', e => { e.preventDefault(); readCSV(e.dataTransfer.files[0]); });
@@ -160,7 +167,8 @@ function prepare(threshold) {
     if (raw === undefined || raw === '') return null;
     let flag;
     if (d.rawScore) { const s = Number(raw); if (isNaN(s)) return null; flag = OPS[cu.op](s, threshold); }
-    else flag = String(raw) === '1' || String(raw).toLowerCase() === 'true';
+    else { const pos = String(d.flagPos == null || d.flagPos === '' ? '1' : d.flagPos).split(',').map(x => x.trim().toLowerCase()).filter(Boolean), v = String(raw).trim().toLowerCase();
+      flag = pos.includes(v) || (pos.includes('1') && v === 'true'); }
     let ref = null;
     if (d.reference === 'proxy') {
       const conds = [d.proxy.c1, d.proxy.c2].filter(c => c && c.col);
@@ -244,6 +252,7 @@ function compute() {
     const res = { subgroup:c.subgroup, metric:c.metric, clause:c.clause, name:c.name, from:c.from, referenceGroup:c.referenceGroup, groups:[], comparisons:[], sensitivity:[] };
     const fail = reason => { res.status = 'indeterminate'; res.reason = reason; return res; };
     if (c.feasibility === 'bad') return fail('Plan: ' + c.note);
+    if (d.rawScore && (plan.customisation.threshold == null || plan.customisation.threshold === '')) return fail('Plan: no decision-rule threshold set');
     if (missing.length) return fail('Required column missing: ' + missing.join(', '));
     if (!head.includes(c.subgroup)) return fail(`Subgroup column "${c.subgroup}" not in data`);
     if (METRICS[c.metric].needsRef && d.reference === 'none') return fail('No reference label');
@@ -300,8 +309,8 @@ function compute() {
 const f3 = v => v === null || v === undefined ? '—' : (Math.round(v * 1000) / 1000).toFixed(3);
 const sg = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + f3(v);
 function statusBadge(c) {
-  if (c.status === 'indeterminate') return `<span class="st st-ind">INDETERMINATE</span>`;
-  const main = c.status === 'significant' ? `<span class="st st-sig">SIGNIFICANT DISPARITY</span>` : `<span class="st st-ns">NOT DISTINGUISHABLE FROM 0</span>`;
+  if (c.status === 'indeterminate') return `<span class="st st-ind">INDETERMINATE</span>`;  // magnitude cannot be measured
+  const main = c.status === 'significant' ? `<span class="st st-sig">SIGNIFICANT DISPARITY · BIASED</span>` : `<span class="st st-ns">NOT DISTINGUISHABLE FROM 0 · UNBIASED</span>`;
   return main + (c.lowN ? ` <span class="st st-low">n &lt; ${plan.data.minN}</span>` : '');
 }
 function renderResults() {
@@ -341,10 +350,10 @@ function caseInputs() {
     ok: head.includes(d.outCol) && used > 0 ? (used === rows.length ? 'ok' : 'partial') : 'missing',
     detail: head.includes(d.outCol) ? `${used} of ${rows.length} rows usable (column "${d.outCol}")` : `column "${d.outCol}" not found`,
     effect:'Without it nothing can be measured: every comparison is indeterminate.' });
-  out.push({ input:'Raw score and decision rule',
+  out.push({ input:'Raw score (numeric output) and decision rule',
     ok: d.rawScore ? 'ok' : 'partial',
-    detail: d.rawScore ? `raw score; rule ${plan.decisionRule || ''}` : 'flag only',
-    effect: d.rawScore ? 'Threshold sensitivity can be run.' : 'Metrics use the delivered flag only; no threshold sensitivity.' });
+    detail: d.rawScore ? `numeric output; rule ${plan.decisionRule || ''}` : `decision or category only (positive: ${d.flagPos || '1'})`,
+    effect: d.rawScore ? 'Threshold sensitivity can be run.' : 'Metrics use the delivered decision only; no threshold sensitivity.' });
   const subs = [...new Set(plan.compute.map(x => x.subgroup).filter(Boolean))];
   const missSub = subs.filter(s => !head.includes(s));
   out.push({ input:'Group attributes',

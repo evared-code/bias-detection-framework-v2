@@ -86,13 +86,13 @@
     <div id="context" class="kv"></div>
     <div class="form-grid">
       <div class="form-field"><label>Verdict owner</label><input type="text" id="owner" placeholder="Name" oninput="setV('owner', this.value)"></div>
-      <div class="form-field"><label>Role</label><input type="text" id="role" placeholder="e.g. physiotherapist, clinical lead" oninput="setV('role', this.value)"></div>
+      <div class="form-field"><label>Role</label><input type="text" id="role" placeholder="e.g. clinical lead; HR manager; credit officer" oninput="setV('role', this.value)"></div>
     </div>
   </div>
 
   <div class="panel">
     <h2><span class="stage">Before results</span>Set tolerance</h2>
-    <div class="lead">For each metric and subgroup: the largest gap (absolute value, same unit as the rate) you would still accept in this context, and where that number comes from (law, guideline, clinical judgement). Lock to reveal the results.</div>
+    <div class="lead">For each metric and subgroup: the largest gap (absolute value, same unit as the rate) you would still accept in this context, and where that number comes from (law, guideline, expert judgement). Lock to reveal the results.</div>
     <fieldset id="tol-fs"><div id="tolerances"></div></fieldset>
     <div class="lockbar unlocked" id="tol-bar" style="margin-top:12px;margin-bottom:0">
       <span id="tol-text"></span><span style="flex:1"></span>
@@ -121,7 +121,7 @@
 
 </div>
 
-<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). Standards-Based Bias &amp; Fairness Toolkit · CMU Software Engineering (CAMT) · HarmonicAI Project — EU Horizon 2020 Marie Skłodowska-Curie Grant No. 101131117</div>
+<div class="site-foot" style="padding:0 20px 40px">Singjai, A. (2026). Standards-Based Bias &amp; Fairness Toolkit (v2) · CMU Software Engineering (CAMT), Chiang Mai University · https://evared-code.github.io/bias-detection-framework-v2/</div>
 
 <script src="bias-data.js"></script>
 <script>
@@ -174,9 +174,9 @@ function renderTol() {
       return `<tr><td>${esc(c.clause)} ${esc(c.name)}<br><span style="color:var(--text3);font-size:11px">from ${c.from.join(', ')}</span></td>
         <td>${esc(c.subgroup || '—')}</td><td style="font-size:11px;color:var(--text2)">${esc(METRICS[c.metric].measures)}</td>
         <td><input class="mini-input" type="number" step="0.01" min="0" style="min-width:0" value="${t.value ?? ''}" onchange="setTol('${esc(c.subgroup)}','${c.metric}','value',this.value)"></td>
-        <td><input class="mini-input" type="text" style="min-width:0" value="${esc(t.source || '')}" placeholder="e.g. risk criteria (cf. ISO/IEC 23894); clinical panel: missing >10% more high-risk users is unacceptable" onchange="setTol('${esc(c.subgroup)}','${c.metric}','source',this.value)"></td></tr>`;
+        <td><input class="mini-input" type="text" style="min-width:0" value="${esc(t.source || '')}" placeholder="e.g. risk criteria (cf. ISO/IEC 23894); expert panel: a gap above 0.10 in missed positives is unacceptable" onchange="setTol('${esc(c.subgroup)}','${c.metric}','source',this.value)"></td></tr>`;
     }).join('') + `</tbody></table>
-    <div class="hint">Different metrics may deserve different tolerances: missing high-risk users (TPR) can be more harmful than over-flagging (FPR).</div>`;
+    <div class="hint">Different metrics may deserve different tolerances: missing true positives (TPR) can be more harmful than false alarms (FPR), or the reverse.</div>`;
   document.getElementById('tol-fs').disabled = V.tolLocked;
   const bar = document.getElementById('tol-bar');
   bar.className = 'lockbar ' + (V.tolLocked ? 'locked' : 'unlocked');
@@ -238,7 +238,7 @@ function cardHtml(x) {
   const exceeds = hasTol ? Math.abs(c.gap) > tol : null;
   h += `<div class="vnums">Gap <strong>${sg(c.gap)}</strong> (${esc({rate:'flag rate',tpr:'TPR',fpr:'FPR',err:'error rate'}[c.rate] || c.rate)} ${f3(c.value)} vs ${f3(c.refValue)}) · 95% CI [${sg(c.ci[0])}, ${sg(c.ci[1])}] · n ${c.n} vs ${c.refN}
     ${c.lowN ? ` <span class="st st-low">n below ${plan ? plan.data.minN : 'minimum'}</span>` : ''}<br>
-    Significant disparity? ${c.status === 'significant' ? '<span class="st st-sig">YES</span>' : '<span class="st st-ns">NO</span>'}
+    Significant disparity? ${c.status === 'significant' ? '<span class="st st-sig">YES · BIASED</span>' : '<span class="st st-ns">NO · UNBIASED</span>'}
     · Tolerance ${hasTol ? `±${f3(tol)} → ${exceeds ? '<span class="st st-sig">EXCEEDED</span>' : '<span class="st st-ns">WITHIN</span>'}` : '<span class="st st-low">NOT SET</span>'}</div>`;
 
   if (c.status === 'significant') {
